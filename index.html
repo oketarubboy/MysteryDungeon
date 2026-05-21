@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#263238" />
+  <title>Simple Mystery Dungeon</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="stylesheet" href="./style.css?v=0.1.0" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div>
+        <h1>Simple Mystery Dungeon</h1>
+        <div class="version">PWA ROGUELIKE v0.1.0</div>
+      </div>
+      <button id="btnUpdate" class="smallBtn">最新版に更新</button>
+    </header>
+
+    <section class="panel setupPanel" id="setupPanel">
+      <label class="nameLabel">
+        プレイヤー名
+        <input id="playerName" maxlength="16" placeholder="なまえ" autocomplete="nickname" />
+      </label>
+      <div class="setupButtons">
+        <button id="btnNewGame" class="mainBtn">冒険を開始</button>
+        <button id="btnRanking" class="subBtn">ランキング更新</button>
+      </div>
+      <p class="help">
+        方向キー・WASD・画面下の十字キーで移動します。敵に向かって移動すると攻撃します。
+        <br>階段「<b>▽</b>」に乗ると次の階へ進みます。10階到達を目指してください。
+      </p>
+    </section>
+
+    <section class="gameLayout">
+      <main class="gameCard">
+        <div class="statusGrid">
+          <div>階層 <b id="stFloor">-</b></div>
+          <div>Lv <b id="stLevel">-</b></div>
+          <div>HP <b id="stHp">-</b></div>
+          <div>満腹 <b id="stFood">-</b></div>
+          <div>G <b id="stGold">-</b></div>
+          <div>スコア <b id="stScore">-</b></div>
+        </div>
+
+        <div id="board" class="board" aria-label="dungeon board"></div>
+
+        <div class="controls">
+          <button data-dir="up-left">↖</button>
+          <button data-dir="up">↑</button>
+          <button data-dir="up-right">↗</button>
+          <button data-dir="left">←</button>
+          <button id="btnWait">待</button>
+          <button data-dir="right">→</button>
+          <button data-dir="down-left">↙</button>
+          <button data-dir="down">↓</button>
+          <button data-dir="down-right">↘</button>
+        </div>
+
+        <div class="actionRow">
+          <button id="btnUseHerb" class="subBtn">薬草を使う</button>
+          <button id="btnGiveUp" class="dangerBtn">冒険終了</button>
+        </div>
+      </main>
+
+      <aside class="sidePanel">
+        <section class="panel">
+          <h2>持ち物</h2>
+          <div id="inventory" class="inventory">-</div>
+        </section>
+
+        <section class="panel">
+          <h2>ログ</h2>
+          <div id="log" class="log"></div>
+        </section>
+
+        <section class="panel">
+          <h2>ランキング</h2>
+          <ol id="rankingList" class="ranking"></ol>
+          <div class="rankingNote" id="rankingNote"></div>
+        </section>
+      </aside>
+    </section>
+
+    <dialog id="resultDialog">
+      <h2 id="resultTitle">結果</h2>
+      <p id="resultText"></p>
+      <div class="dialogButtons">
+        <button id="btnSubmitScore" class="mainBtn">ランキング登録</button>
+        <button id="btnCloseResult" class="subBtn">閉じる</button>
+      </div>
+    </dialog>
+  </div>
+
+  <script src="./app.js?v=0.1.0"></script>
+</body>
+</html>

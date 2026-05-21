@@ -1,0 +1,17 @@
+{
+  "name": "Simple Mystery Dungeon",
+  "short_name": "MysteryDungeon",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#172026",
+  "theme_color": "#263238",
+  "description": "A simple original mystery dungeon style PWA.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
