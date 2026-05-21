@@ -1,59 +1,28 @@
-# Simple Mystery Dungeon PWA v0.1.0
+Simple Mystery Dungeon PWA v0.2.1
 
-## 内容
-トルネコ系の「不思議なダンジョン」風の遊び方を参考にした、オリジナルのシンプルなPWAサンプルです。
+概要:
+不思議なダンジョン風の遊び方を参考にした、オリジナルのシンプルPWAです。
 固有名詞・キャラクター・画像・詳細データは流用していません。
 
-## ファイル
-- index.html
-- style.css
-- app.js
-- sw.js
-- manifest.json
-- icon.svg
-- gas/Code.gs
+GAS URLは組み込み済みです:
+https://script.google.com/macros/s/AKfycbzUJb7b8I7w5HG7h7OeR-43vawtbcBiudTLO2qzOhOrt4O9IYxIRnhObWn9-n3Io5dUoA/exec
 
-## 遊び方
-1. index.html をHTTPS環境、またはローカルサーバーで開きます。
-2. プレイヤー名を入力します。
-3. 「冒険を開始」を押します。
-4. 方向キー、WASD、または画面下の十字キーで移動します。
-5. 敵に向かって移動すると攻撃します。
-6. 階段「▽」に乗ると次の階へ進みます。
-7. 10階到達でクリアです。
-
-## ランキング
-app.js の先頭付近にある下記へGoogle Apps ScriptのWebアプリURLを設定してください。
-
-const GAS_URL = "";
-
-例:
-const GAS_URL = "https://script.google.com/macros/s/xxxxxxxx/exec";
-
-GAS_URLが空の場合は、端末内のローカルランキングだけで動作します。
-
-## Google Apps Script設定
-1. Googleスプレッドシートを新規作成
-2. 拡張機能 → Apps Script
-3. gas/Code.gs の内容を貼り付け
-4. デプロイ → 新しいデプロイ → ウェブアプリ
-   - 実行ユーザー: 自分
-   - アクセスできるユーザー: 全員
-5. 発行された /exec URL を app.js の GAS_URL に貼り付け
-
-## PWA更新
-画面右上の「最新版に更新」ボタンで、
-- Service Worker登録解除
-- Cache Storage削除
-- キャッシュ回避パラメータ付き再読み込み
-を行います。
-
-## 次に追加しやすい機能
-- アイテム欄と装備
-- 未識別アイテム
-- 合成
-- モンスターごとの特殊能力
-- 店
-- 倉庫
+追加機能:
+- 装備: 武器、盾、指輪
+- 壺: 回復の壺、識別の壺、保存の壺
+- 杖: 火ばしら、鈍足、ふきとばし、場所替え
+- 巻物: 識別、いかずち、ワープ、帰還
+- 未識別アイテム: 草、巻物、杖、壺、指輪
+- モンスター特殊能力: 分裂、2回行動、遠距離攻撃、盗み、壁抜け、毒
+- 倉庫: 帰還・クリア時に持ち物と装備を保存。冒険前に最大8個まで持ち出し可能
+- 店: 店マスに乗ると商品を購入可能
 - ダンジョン別ランキング
-- 日替わりダンジョン
+- 最新版に更新ボタン
+
+ローカル確認:
+ZIPを展開して start_local_server_v0_2_1.bat を実行してください。
+ブラウザで http://localhost:8000/mysterious_dungeon_pwa_v0_2_1/ を開きます。
+
+Google Apps Script:
+gas/Code.gs はダンジョン別ランキング対応版です。既存GASへ上書きしてください。
+旧ランキングシートがある場合、不足列は自動追加します。
