@@ -1,6 +1,6 @@
-# Simple Mystery Dungeon PWA v0.3.1
+# Simple Mystery Dungeon PWA v0.3.2
 
-## v0.3.1 追加・修正
+## v0.3.2 追加・修正
 - 装備中アイテムを持ち物一覧でも緑色表示し、装備名の後に「:E」を表示
 - 手持ち・倉庫の自動整頓を追加
 - 整頓順: 装備中 → 武器 → 防具/盾 → 指輪 → 矢 → 回復アイテム → 食料 → 杖 → 巻物 → 壺
@@ -21,8 +21,8 @@
   - https://script.google.com/macros/s/AKfycbzUJb7b8I7w5HG7h7OeR-43vawtbcBiudTLO2qzOhOrt4O9IYxIRnhObWn9-n3Io5dUoA/exec
 
 ## ローカル確認
-ZIPを展開して start_local_server_v0_3_1.bat を実行してください。
-http://localhost:8000/mysterious_dungeon_pwa_v0_3_1/
+ZIPを展開して start_local_server_v0_3_2.bat を実行してください。
+http://localhost:8000/mysterious_dungeon_pwa_v0_3_2/
 
 ## 現在のアイテムリスト
 ### 回復・草
@@ -53,7 +53,7 @@ http://localhost:8000/mysterious_dungeon_pwa_v0_3_1/
 回復の壺 / 識別の壺 / 保存の壺 / 合成の壺
 
 
-## v0.3.1 変更点
+## v0.3.2 変更点
 - Ctrl＋方向キー、または「向き変更」ボタン後の方向入力で、ターンを消費せず向きだけ変更できます。
 - 攻撃ボタンの空振りでも1ターン経過し、敵が行動します。
 - 矢を装備できるようにしました。矢ボタンは装備中の矢を優先して発射します。
@@ -63,3 +63,9 @@ http://localhost:8000/mysterious_dungeon_pwa_v0_3_1/
 - 通常時はスコアを非表示にし、死亡・帰還・クリア時の結果画面で表示します。
 - 初心者の洞窟・薬草の迷宮はレベルを持ち越します。
 - もっと不思議な迷宮はレベル1から開始します。
+
+
+## v0.3.2 変更点
+- 向きを変えたとき、主人公マスの矢印も向きに合わせて回転するように修正しました。
+- アイテムマスに移動しても拾えないことがある不具合を修正しました。
+- HPが0になった場合、死因・スコアを結果画面に表示し、背面を初期画面へ戻すように修正しました。
