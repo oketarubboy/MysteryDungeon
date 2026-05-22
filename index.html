@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#263238">
   <title>Simple Mystery Dungeon</title>
   <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./style.css?v=0.2.2">
+  <link rel="stylesheet" href="./style.css?v=0.3.0">
 </head>
 <body>
 <div id="app">
   <header class="topbar">
-    <div><h1>Simple Mystery Dungeon</h1><div class="ver">PWA ROGUELIKE v0.2.2</div></div>
+    <div><h1>Simple Mystery Dungeon</h1><div class="ver">PWA ROGUELIKE v0.3.0</div></div>
     <button id="btnUpdate" class="small">最新版に更新</button>
   </header>
 
@@ -24,7 +24,7 @@
     </select></label>
     <button id="btnNewGame" class="main">冒険を開始</button>
     <button id="btnRanking" class="sub">ランキング更新</button>
-    <p>方向キー・WASD・画面の十字キーで移動。敵に向かって移動すると攻撃。階段「▽」で次階、店「店」で購入・売却。5階ごとの帰還ポイント、帰還の巻物、クリア時だけ持ち帰れます。</p>
+    <p>方向キー・WASDで移動。Q/E/Z/Cで斜め移動。Shift押下中は上下左右キー単体では移動せず、縦＋横の同時押し時だけ斜め移動します。攻撃ボタンで向いている方向を攻撃、矢ボタンで矢を発射します。</p>
   </section>
 
   <section class="layout">
@@ -33,7 +33,12 @@
         <div>階層<b id="stFloor">-</b></div><div>Lv<b id="stLevel">-</b></div><div>HP<b id="stHp">-</b></div>
         <div>満腹<b id="stFood">-</b></div><div>G<b id="stGold">-</b></div><div>スコア<b id="stScore">-</b></div>
       </div>
-      <div class="equip"><div>武器：<b id="eqWeapon">なし</b></div><div>盾：<b id="eqShield">なし</b></div><div>指輪：<b id="eqRing">なし</b></div></div>
+      <div class="equip">
+        <div>武器：<b id="eqWeapon">なし</b></div>
+        <div>盾：<b id="eqShield">なし</b></div>
+        <div>右指：<b id="eqRingR">なし</b></div>
+        <div>左指：<b id="eqRingL">なし</b></div>
+      </div>
       <div id="board" class="board"></div>
       <div class="ctrl">
         <button data-dir="up-left">↖</button><button data-dir="up">↑</button><button data-dir="up-right">↗</button>
@@ -41,16 +46,22 @@
         <button data-dir="down-left">↙</button><button data-dir="down">↓</button><button data-dir="down-right">↘</button>
       </div>
       <div class="actions">
-        <button id="btnUse" class="sub">選択を使う</button><button id="btnEquip" class="sub">選択を装備</button>
-        <button id="btnDrop" class="sub">床に置く</button><button id="btnSwapFloor" class="sub">床と交換</button>
-        <button id="btnReturn" class="safe">帰還</button><button id="btnGiveUp" class="danger">あきらめる</button>
+        <button id="btnAttack" class="main">攻撃</button>
+        <button id="btnShoot" class="main">矢を撃つ</button>
+        <button id="btnUse" class="sub">選択を使う</button>
+        <button id="btnEquip" class="sub">選択を装備</button>
+        <button id="btnDrop" class="sub">床に置く</button>
+        <button id="btnSwapFloor" class="sub">床と交換</button>
+        <button id="btnSortInv" class="sub">手持ち整頓</button>
+        <button id="btnReturn" class="safe">帰還</button>
+        <button id="btnGiveUp" class="danger">あきらめる</button>
       </div>
     </main>
 
     <aside>
       <section class="panel"><h2>持ち物</h2><div id="bagInfo" class="note">-</div><div id="inventory" class="list">-</div></section>
       <section class="panel"><h2>店</h2><div id="shop" class="list muted">店に乗ると商品が表示されます。</div></section>
-      <section class="panel"><h2>倉庫</h2><div class="actions"><button id="btnTakeWh" class="mini">選択を持ち出す</button></div><div id="warehouse" class="list">-</div><div class="note">倉庫の出し入れは冒険前のみ。帰還ポイント・帰還の巻物・クリア時に持ち物と装備を保存します。あきらめると全ロストします。</div></section>
+      <section class="panel"><h2>倉庫</h2><div class="actions"><button id="btnTakeWh" class="mini">選択を持ち出す</button><button id="btnSortWh" class="mini">倉庫整頓</button></div><div id="warehouse" class="list">-</div><div class="note">倉庫の出し入れは冒険前のみ。帰還ポイント・帰還の巻物・クリア時に持ち物と装備を保存します。あきらめる/死亡時は全ロストします。</div></section>
       <section class="panel"><h2>ログ</h2><div id="log" class="log"></div></section>
       <section class="panel"><h2>ダンジョン別ランキング</h2><ol id="ranking"></ol><div id="rankingNote" class="note"></div></section>
     </aside>
@@ -58,6 +69,6 @@
 
   <dialog id="result"><h2 id="resultTitle">結果</h2><p id="resultText"></p><div class="actions"><button id="btnSubmit" class="main">ランキング登録</button><button id="btnClose" class="sub">閉じる</button></div></dialog>
 </div>
-<script src="./app.js?v=0.2.2"></script>
+<script src="./app.js?v=0.3.0"></script>
 </body>
 </html>
