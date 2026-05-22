@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#263238">
   <title>Simple Mystery Dungeon</title>
   <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./style.css?v=0.2.1">
+  <link rel="stylesheet" href="./style.css?v=0.2.2">
 </head>
 <body>
 <div id="app">
   <header class="topbar">
-    <div><h1>Simple Mystery Dungeon</h1><div class="ver">PWA ROGUELIKE v0.2.1</div></div>
+    <div><h1>Simple Mystery Dungeon</h1><div class="ver">PWA ROGUELIKE v0.2.2</div></div>
     <button id="btnUpdate" class="small">最新版に更新</button>
   </header>
 
@@ -24,7 +24,7 @@
     </select></label>
     <button id="btnNewGame" class="main">冒険を開始</button>
     <button id="btnRanking" class="sub">ランキング更新</button>
-    <p>方向キー・WASD・画面の十字キーで移動。敵に向かって移動すると攻撃。階段「▽」で次階、店「店」で購入。</p>
+    <p>方向キー・WASD・画面の十字キーで移動。敵に向かって移動すると攻撃。階段「▽」で次階、店「店」で購入・売却。5階ごとの帰還ポイント、帰還の巻物、クリア時だけ持ち帰れます。</p>
   </section>
 
   <section class="layout">
@@ -42,6 +42,7 @@
       </div>
       <div class="actions">
         <button id="btnUse" class="sub">選択を使う</button><button id="btnEquip" class="sub">選択を装備</button>
+        <button id="btnDrop" class="sub">床に置く</button><button id="btnSwapFloor" class="sub">床と交換</button>
         <button id="btnReturn" class="safe">帰還</button><button id="btnGiveUp" class="danger">あきらめる</button>
       </div>
     </main>
@@ -49,7 +50,7 @@
     <aside>
       <section class="panel"><h2>持ち物</h2><div id="bagInfo" class="note">-</div><div id="inventory" class="list">-</div></section>
       <section class="panel"><h2>店</h2><div id="shop" class="list muted">店に乗ると商品が表示されます。</div></section>
-      <section class="panel"><h2>倉庫</h2><div class="actions"><button id="btnTakeWh" class="mini">選択を持ち出す</button></div><div id="warehouse" class="list">-</div><div class="note">倉庫の出し入れは冒険前のみ。帰還・クリア時に持ち物と装備を保存します。</div></section>
+      <section class="panel"><h2>倉庫</h2><div class="actions"><button id="btnTakeWh" class="mini">選択を持ち出す</button></div><div id="warehouse" class="list">-</div><div class="note">倉庫の出し入れは冒険前のみ。帰還ポイント・帰還の巻物・クリア時に持ち物と装備を保存します。あきらめると全ロストします。</div></section>
       <section class="panel"><h2>ログ</h2><div id="log" class="log"></div></section>
       <section class="panel"><h2>ダンジョン別ランキング</h2><ol id="ranking"></ol><div id="rankingNote" class="note"></div></section>
     </aside>
@@ -57,6 +58,6 @@
 
   <dialog id="result"><h2 id="resultTitle">結果</h2><p id="resultText"></p><div class="actions"><button id="btnSubmit" class="main">ランキング登録</button><button id="btnClose" class="sub">閉じる</button></div></dialog>
 </div>
-<script src="./app.js?v=0.2.1"></script>
+<script src="./app.js?v=0.2.2"></script>
 </body>
 </html>

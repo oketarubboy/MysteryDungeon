@@ -1,4 +1,4 @@
-Simple Mystery Dungeon PWA v0.2.1
+Simple Mystery Dungeon PWA v0.2.2
 
 概要:
 不思議なダンジョン風の遊び方を参考にした、オリジナルのシンプルPWAです。
@@ -21,8 +21,21 @@ https://script.google.com/macros/s/AKfycbzUJb7b8I7w5HG7h7OeR-43vawtbcBiudTLO2qzO
 
 ローカル確認:
 ZIPを展開して start_local_server_v0_2_1.bat を実行してください。
-ブラウザで http://localhost:8000/mysterious_dungeon_pwa_v0_2_1/ を開きます。
+ブラウザで http://localhost:8000/mysterious_dungeon_pwa_v0_2_2/ を開きます。
 
 Google Apps Script:
 gas/Code.gs はダンジョン別ランキング対応版です。既存GASへ上書きしてください。
 旧ランキングシートがある場合、不足列は自動追加します。
+
+
+## v0.2.2 修正内容
+- 持ち物欄の各アイテムに「使う」「装備」「置く」「床と交換」「売る」ボタンを追加
+- 床にアイテムを置けるように修正
+- 足元のアイテムと手持ちアイテムを交換可能に修正
+- 持ち物上限を20個に変更
+- 店で手持ちアイテムを売却可能に修正
+- 初心者の洞窟は未識別アイテムなし
+- 薬草の迷宮は巻物だけ未識別
+- 帰還ボタンは5階ごとの帰還ポイントのみ使用可能
+- 帰還の巻物とクリア時は持ち帰り可能
+- あきらめる、死亡時は手持ちと装備を全ロスト
