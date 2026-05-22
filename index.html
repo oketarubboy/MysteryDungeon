@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#263238">
   <title>Simple Mystery Dungeon</title>
   <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./style.css?v=0.3.0">
+  <link rel="stylesheet" href="./style.css?v=0.3.1">
 </head>
 <body>
 <div id="app">
   <header class="topbar">
-    <div><h1>Simple Mystery Dungeon</h1><div class="ver">PWA ROGUELIKE v0.3.0</div></div>
+    <div><h1>Simple Mystery Dungeon</h1><div class="ver">PWA ROGUELIKE v0.3.1</div></div>
     <button id="btnUpdate" class="small">最新版に更新</button>
   </header>
 
@@ -24,20 +24,21 @@
     </select></label>
     <button id="btnNewGame" class="main">冒険を開始</button>
     <button id="btnRanking" class="sub">ランキング更新</button>
-    <p>方向キー・WASDで移動。Q/E/Z/Cで斜め移動。Shift押下中は上下左右キー単体では移動せず、縦＋横の同時押し時だけ斜め移動します。攻撃ボタンで向いている方向を攻撃、矢ボタンで矢を発射します。</p>
+    <p>方向キー・WASDで移動。Q/E/Z/Cで斜め移動。Ctrl＋方向キー、または「向き変更」ボタン後の方向入力でターン消費なしに向きだけ変更します。攻撃ボタンで向いている方向を攻撃、矢ボタンで装備中の矢を発射します。</p>
   </section>
 
   <section class="layout">
     <main class="game panel">
       <div class="status">
         <div>階層<b id="stFloor">-</b></div><div>Lv<b id="stLevel">-</b></div><div>HP<b id="stHp">-</b></div>
-        <div>満腹<b id="stFood">-</b></div><div>G<b id="stGold">-</b></div><div>スコア<b id="stScore">-</b></div>
+        <div>満腹<b id="stFood">-</b></div><div>攻撃<b id="stAtk">-</b></div><div>防御<b id="stDef">-</b></div>
       </div>
       <div class="equip">
         <div>武器：<b id="eqWeapon">なし</b></div>
         <div>盾：<b id="eqShield">なし</b></div>
         <div>右指：<b id="eqRingR">なし</b></div>
         <div>左指：<b id="eqRingL">なし</b></div>
+        <div>矢：<b id="eqArrow">なし</b></div>
       </div>
       <div id="board" class="board"></div>
       <div class="ctrl">
@@ -48,6 +49,8 @@
       <div class="actions">
         <button id="btnAttack" class="main">攻撃</button>
         <button id="btnShoot" class="main">矢を撃つ</button>
+        <button id="btnLook" class="sub">足元確認</button>
+        <button id="btnFaceMode" class="sub">向き変更</button>
         <button id="btnUse" class="sub">選択を使う</button>
         <button id="btnEquip" class="sub">選択を装備</button>
         <button id="btnDrop" class="sub">床に置く</button>
@@ -69,6 +72,6 @@
 
   <dialog id="result"><h2 id="resultTitle">結果</h2><p id="resultText"></p><div class="actions"><button id="btnSubmit" class="main">ランキング登録</button><button id="btnClose" class="sub">閉じる</button></div></dialog>
 </div>
-<script src="./app.js?v=0.3.0"></script>
+<script src="./app.js?v=0.3.1"></script>
 </body>
 </html>
