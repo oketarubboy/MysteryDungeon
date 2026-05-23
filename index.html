@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#263238">
   <title>Simple Mystery Dungeon</title>
   <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./style.css?v=0.3.6">
+  <link rel="stylesheet" href="./style.css?v=0.3.7">
 </head>
 <body>
 <div id="app">
   <header class="topbar">
-    <div><h1>Simple Mystery Dungeon</h1><div class="ver">PWA ROGUELIKE v0.3.6</div></div>
+    <div><h1>Simple Mystery Dungeon</h1><div class="ver">PWA ROGUELIKE v0.3.7</div></div>
     <button id="btnUpdate" class="small">最新版に更新</button>
   </header>
 
@@ -24,7 +24,7 @@
     </select></label>
     <button id="btnNewGame" class="main">冒険を開始</button>
     <button id="btnRanking" class="sub">ランキング更新</button>
-    <p>方向キー・WASDで移動。Q/E/Z/Cで斜め移動。Ctrl＋方向キー、Ctrl＋Q/E/Z/C、または「向き変更」ボタン後の方向入力でターン消費なしに向きだけ変更します。攻撃ボタンで向いている方向を攻撃、矢ボタンで装備中の矢を発射します。アイテムは「拾う」ボタンで取得できます。</p>
+    <p>方向キー・WASDで移動。Q/E/Z/Cで斜め移動。Ctrl＋方向キー、Ctrl＋Q/E/Z/C、または「向き変更」ボタン後の方向入力でターン消費なしに向きだけ変更します。攻撃ボタンで向いている方向を攻撃、矢ボタンで装備中の矢を発射します。アイテムは移動時に自動取得し、「拾う」ボタンやアイテムのタップでも取得できます。</p>
   </section>
 
   <section class="layout">
@@ -73,6 +73,6 @@
 
   <dialog id="result"><h2 id="resultTitle">結果</h2><p id="resultText"></p><div class="actions"><button id="btnSubmit" class="main">ランキング登録</button><button id="btnClose" class="sub">閉じる</button></div></dialog>
 </div>
-<script src="./app.js?v=0.3.6"></script>
+<script src="./app.js?v=0.3.7"></script>
 </body>
 </html>
