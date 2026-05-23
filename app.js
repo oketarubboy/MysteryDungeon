@@ -1,4 +1,4 @@
-const APP_VERSION="0.4.0";
+const APP_VERSION="0.4.1";
 const GAS_URL="https://script.google.com/macros/s/AKfycbzUJb7b8I7w5HG7h7OeR-43vawtbcBiudTLO2qzOhOrt4O9IYxIRnhObWn9-n3Io5dUoA/exec";
 const SIZE=15,WALL=0,FLOOR=1;
 const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0],"up-left":[-1,-1],"up-right":[1,-1],"down-left":[-1,1],"down-right":[1,1]};
@@ -28,7 +28,7 @@ function bind(){
 }
 function normKey(k){k=String(k).toLowerCase();return {arrowup:"up",arrowdown:"down",arrowleft:"left",arrowright:"right",w:"up",s:"down",a:"left",d:"right",q:"q",e:"e",z:"z",c:"c",shift:"shift"}[k]||k}
 function handleKey(ev){if(!S||S.end||E.res.open)return;let k=normKey(ev.key);let direct={q:"up-left",e:"up-right",z:"down-left",c:"down-right"};if(k==="shift"){held.add(k);return}if(["up","down","left","right"].includes(k))held.add(k);if(k===" "||k==="."){ev.preventDefault();turn(0,0);return}if(direct[k]){ev.preventDefault();let [dx,dy]=DIRS[direct[k]];if(ev.ctrlKey||faceMode){setFace(dx,dy);faceMode=false;updateFaceButton();return}S.face={dx,dy};turn(dx,dy);return}if(!["up","down","left","right"].includes(k))return;ev.preventDefault();let v=held.has("up")?"up":held.has("down")?"down":null;let h=held.has("left")?"left":held.has("right")?"right":null;if(ev.ctrlKey||faceMode){if(v&&h){let [dx,dy]=DIRS[v+"-"+h];setFace(dx,dy)}else{let [dx,dy]=DIRS[k];setFace(dx,dy)}faceMode=false;updateFaceButton();return}if(ev.shiftKey||held.has("shift")){if(v&&h){let [dx,dy]=DIRS[v+"-"+h];S.face={dx,dy};held.clear();turn(dx,dy)}else logRender("Shift中は縦＋横キー同時押しで斜め移動します。");return}let [dx,dy]=DIRS[k];S.face={dx,dy};turn(dx,dy)}
-function setFace(dx,dy){if(!S||S.end)return;S.face={dx,dy};log("向きを変えました。ターンは経過しません。");render()}
+function setFace(dx,dy){if(!S||S.end)return;S.face={dx,dy};log("向きを変えました。ターンは経過しません。");try{renderBoard()}catch(e){console.error(e)}refreshPanels()}
 function toggleFaceMode(){faceMode=!faceMode;updateFaceButton();logRender(faceMode?"次の方向入力で向きだけ変更します。":"向き変更モードを解除しました。")}
 function updateFaceButton(){let b=$("btnFaceMode");if(!b)return;b.classList.toggle("faceModeOn",faceMode);b.textContent=faceMode?"向き変更中":"向き変更"}
 function faceClass(){let f=S?.face||{dx:0,dy:1};return({"0,-1":"face-up","1,-1":"face-up-right","1,0":"face-right","1,1":"face-down-right","0,1":"face-down","-1,1":"face-down-left","-1,0":"face-left","-1,-1":"face-up-left"}[`${f.dx},${f.dy}`]||"face-down")}
@@ -95,7 +95,36 @@ function equipItem(slot){return findItem(S.p.eq[slot])}
 function hasEff(e){return [equipItem("weapon"),equipItem("shield"),equipItem("ringR"),equipItem("ringL")].some(it=>it?.ef?.includes(e))}
 function atk(){let v=S.p.atk;let w=equipItem("weapon");if(w)v+=w.pow+(w.plus||0);for(const r of [equipItem("ringR"),equipItem("ringL")])if(r?.k==="rp")v+=2+(r.plus||0);return S.p.poison?Math.max(1,v-2):v}
 function def(){let v=S.p.def;let s=equipItem("shield");if(s)v+=s.pow+(s.plus||0);return v}
-function turn(dx,dy){if(!S||S.end)return;normalizeItems();let acted=false;if(dx===0&&dy===0){log("その場で様子を見ました。");acted=true}else{S.face={dx,dy};let nx=Number(S.p.x)+dx,ny=Number(S.p.y)+dy;if(!inside(nx,ny)||S.map[ny][nx]===WALL)log("壁にぶつかりました。");else{let e=S.en.find(e=>Number(e.x)===nx&&Number(e.y)===ny);if(e){meleeAttack(dx,dy);acted=true}else{S.p.x=nx;S.p.y=ny;acted=true;pickupAt(nx,ny,false);pickupAt(S.p.x,S.p.y,true);refreshPanels();stairs()}}}if(!acted||S.end){render();return}after()}
+function turn(dx,dy){
+ if(!S||S.end)return;
+ try{normalizeItems()}catch(e){console.error(e)}
+ let acted=false;
+ if(dx===0&&dy===0){
+   log("その場で様子を見ました。");
+   acted=true;
+ }else{
+   S.face={dx,dy};
+   let nx=Number(S.p.x)+dx,ny=Number(S.p.y)+dy;
+   if(!inside(nx,ny)||S.map[ny][nx]===WALL){
+     log("壁にぶつかりました。");
+   }else{
+     let e=S.en.find(e=>Number(e.x)===nx&&Number(e.y)===ny);
+     if(e){
+       meleeAttack(dx,dy);
+       acted=true;
+     }else{
+       S.p.x=nx;S.p.y=ny;
+       acted=true;
+       try{pickupAt(nx,ny,false);pickupAt(S.p.x,S.p.y,true)}catch(err){console.error(err)}
+       try{renderBoard()}catch(err){console.error(err)}
+       refreshPanels();
+       stairs();
+     }
+   }
+ }
+ if(!acted||S.end){render();return}
+ after()
+}
 function attackButton(){if(!S||S.end)return;let {dx,dy}=S.face;if(dx===0&&dy===0){dx=0;dy=1}let hit=meleeAttack(dx,dy);if(!hit){let near=S.en.find(e=>Math.max(Math.abs(e.x-S.p.x),Math.abs(e.y-S.p.y))<=1);if(near){S.face={dx:Math.sign(near.x-S.p.x),dy:Math.sign(near.y-S.p.y)};hit=meleeAttack(S.face.dx,S.face.dy)}}if(hit)after();else{log("攻撃しましたが敵に当たりませんでした。");effect(S.p.x+dx,S.p.y+dy);after()}}
 function meleeTargets(dx,dy){let w=equipItem("weapon"),range=w?.ef?.includes("reach2")?2:1;let dirs=[[dx,dy]];if(w?.ef?.includes("tri")){if(dx===0)dirs=[[dx,dy],[-1,dy],[1,dy]];else if(dy===0)dirs=[[dx,dy],[dx,-1],[dx,1]];else dirs=[[dx,dy],[dx,0],[0,dy]]}let out=[];for(const [ax,ay] of dirs){for(let r=1;r<=range;r++){let x=S.p.x+ax*r,y=S.p.y+ay*r;if(!inside(x,y)||S.map[y][x]===WALL)break;let e=S.en.find(en=>en.x===x&&en.y===y);if(e){out.push(e);break}}}return [...new Map(out.map(e=>[e.id,e])).values()]}
 function meleeAttack(dx,dy){let targets=meleeTargets(dx,dy);if(!targets.length)return false;targets.forEach(e=>attackOne(e));return true}
@@ -106,7 +135,18 @@ function shootSelected(idv=sel){if(!S||S.end)return;let it=equipItem("arrow")||f
 function dropArrowAt(src,x,y){let p=dropTile(x,y);let on=S.items.find(it=>Number(it.x)===p.x&&Number(it.y)===p.y&&it.k===src.k&&it.cat==="arrow");if(on){on.qty=(on.qty||0)+1;return}let a=item(src.k,true,false);a.qty=1;a.x=p.x;a.y=p.y;S.items.push(a)}
 function lookFloor(){if(!S||S.end)return;let it=floorItem();if(it)logRender(`足元には ${dn(it)} があります。${dd(it)}`);else logRender("足元にアイテムはありません。")}
 function effect(x,y){S.fx={x,y,t:Date.now()};setTimeout(()=>{if(S&&S.fx&&S.fx.x===x&&S.fx.y===y){S.fx=null;render()}},420)}
-function after(){S.t++;hunger();if(!S||S.end){render();return}enemyTurn();if(!S||S.end){render();return}if(S.p.hp<=0){finish("HPが0になりました。",false,false);return}if(S.t%8===0&&S.p.hp<S.p.mhp&&S.p.food>0)S.p.hp++;normalizeItems();pickupAt(S.p.x,S.p.y,true);render()}
+function after(){
+ S.t++;
+ hunger();
+ if(!S||S.end){render();return}
+ enemyTurn();
+ if(!S||S.end){render();return}
+ if(S.p.hp<=0){finish("HPが0になりました。",false,false);return}
+ if(S.t%8===0&&S.p.hp<S.p.mhp&&S.p.food>0)S.p.hp++;
+ try{normalizeItems();pickupAt(S.p.x,S.p.y,true)}catch(e){console.error(e)}
+ try{renderBoard()}catch(e){console.error(e)}
+ refreshPanels()
+}
 function hunger(){let rings=[equipItem("ringR"),equipItem("ringL")];let use=rings.some(r=>r?.k==="rf")?(S.t%2===0?1:0):1;S.p.food=cl(S.p.food-use,0,100);if(S.p.food===20)log("お腹が空いてきました。");if(S.p.food===0){S.p.hp-=2;log("空腹で2ダメージ。");if(S.p.hp<=0)finish("空腹で倒れました。",false,false)}}
 function enemyTurn(){for(const e of [...S.en]){if(S.end)return;if(e.sleep>0){e.sleep--;continue}let n=e.ab==="fast"&&Math.random()<.55?2:1;for(let i=0;i<n;i++){if(!S.en.includes(e)||S.end)break;if(e.slow>0){e.slow--;if(i===0)continue}enemyAct(e)}}}
 function enemyAct(e){let dist=Math.max(Math.abs(e.x-S.p.x),Math.abs(e.y-S.p.y));if(e.ab==="range"&&dist>1&&dist<=4&&Math.random()<.6){let dmg=Math.max(1,e.atk+R(1,4)-Math.floor(def()/2));if(hasEff("flameGuard"))dmg=Math.max(1,Math.floor(dmg*.55));S.p.hp-=dmg;effect(S.p.x,S.p.y);log(`${e.n}の炎。${dmg}ダメージ。`);if(S.p.hp<=0)finish(`${e.n}に倒されました。`,false,false);return}if(dist<=1)enemyAttack(e);else if(dist<=7){let dx=Math.sign(S.p.x-e.x),dy=Math.sign(S.p.y-e.y);moveE(e,dx,dy)||moveE(e,dx,0)||moveE(e,0,dy)}else if(Math.random()<.35){let [dx,dy]=C(Object.values(DIRS));moveE(e,dx,dy)}}
@@ -155,7 +195,55 @@ function giveup(){if(S&&!S.end)finish("冒険をあきらめました。手持�
 function finish(msg,clear,keep){if(!S||S.end)return;let death=!clear&&!keep&&S.p.hp<=0;S.end=true;last={name:S.name,score:score(clear),floor:S.f,level:S.p.lv,gold:S.p.g,defeated:S.def,turn:S.t,cleared:clear,dungeonId:S.du.id,dungeonName:S.du.name,version:APP_VERSION,createdAt:new Date().toISOString()};saveLocal(last);saveProgress();let resultInfo={name:S.name,duName:S.du.name,f:S.f,lv:S.p.lv,def:S.def,g:S.p.g,msg,clear,keep,death};if(keep)depositAll();else{S.p.inv=[];S.p.eq={weapon:null,shield:null,ringR:null,ringL:null,arrow:null};sel=""}render();renderWh();E.rt.textContent=clear?"ダンジョンクリア！":death?"冒険失敗":"冒険終了";E.rx.innerHTML=`${death?"死因":"理由"}：${esc(msg)}<br>ダンジョン：${esc(resultInfo.duName)}<br>スコア：<b>${last.score}</b><br>到達階：${resultInfo.f}階 / Lv：${resultInfo.lv} / 討伐：${resultInfo.def}体 / G：${resultInfo.g}`;E.sub.disabled=false;E.res.showModal();loadRank();setTimeout(()=>{S=null;faceMode=false;updateFaceButton();empty();renderWh()},0)}
 function score(clear=false){return Math.floor(S.f*140*S.du.dif+S.p.lv*90+S.p.g+S.def*28+Math.max(0,S.p.hp)*3+S.p.inv.length*15+(clear?S.du.max*180:0))}
 function empty(){E.b.innerHTML="";for(let i=0;i<SIZE*SIZE;i++){let d=document.createElement("div");d.className="cell wall";E.b.appendChild(d)}update();renderInv();renderShop()}
-function render(){if(!S){empty();return}normalizeItems();pickupAt(S.p.x,S.p.y,true);let im=new Map(S.items.map(x=>[`${x.x},${x.y}`,x])),em=new Map(S.en.map(x=>[`${x.x},${x.y}`,x]));E.b.innerHTML="";for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){let d=document.createElement("div"),k=`${x},${y}`;d.className="cell "+(S.map[y][x]===WALL?"wall":"floor");if(S.p.x===x&&S.p.y===y){d.className="cell player "+faceClass();d.textContent="主"}else if(em.has(k)){let e=em.get(k);d.className="cell enemy";d.textContent=e.ic;d.title=`${e.n} HP:${e.hp}/${e.mhp}`}else if(S.st.x===x&&S.st.y===y){d.className="cell stairs";d.textContent="▽"}else if(S.shop&&S.shop.x===x&&S.shop.y===y){d.className="cell shopTile";d.textContent="店"}else if(im.has(k)){let it=im.get(k);d.className="cell item";d.textContent=it.ic;d.title=dn(it);d.onclick=()=>{if(S&&Number(it.x)===Number(S.p.x)&&Number(it.y)===Number(S.p.y)){pickupAt(it.x,it.y,false);render()}else logRender("アイテムの上に乗ってから拾ってください。")}}else if(S.map[y][x]===FLOOR)d.textContent="·";if(S.fx&&S.fx.x===x&&S.fx.y===y)d.className+=" hitEffect";E.b.appendChild(d)}update();renderInv();renderShop();renderLog()}
+function renderBoard(){
+ if(!S){E.b.innerHTML="";for(let i=0;i<SIZE*SIZE;i++){let d=document.createElement("div");d.className="cell wall";E.b.appendChild(d)}return}
+ try{normalizeItems()}catch(e){console.error(e)}
+ let im=new Map((S.items||[]).map(x=>[`${Number(x.x)},${Number(x.y)}`,x])),em=new Map((S.en||[]).map(x=>[`${Number(x.x)},${Number(x.y)}`,x]));
+ E.b.innerHTML="";
+ for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){
+   let d=document.createElement("div"),k=`${x},${y}`;
+   d.className="cell "+(S.map[y][x]===WALL?"wall":"floor");
+   if(Number(S.p.x)===x&&Number(S.p.y)===y){
+     d.className="cell player "+faceClass();
+     d.textContent="主";
+   }else if(em.has(k)){
+     let e=em.get(k);
+     d.className="cell enemy";
+     d.textContent=e.ic;
+     d.title=`${e.n} HP:${e.hp}/${e.mhp}`;
+   }else if(Number(S.st.x)===x&&Number(S.st.y)===y){
+     d.className="cell stairs";
+     d.textContent="▽";
+   }else if(S.shop&&Number(S.shop.x)===x&&Number(S.shop.y)===y){
+     d.className="cell shopTile";
+     d.textContent="店";
+   }else if(im.has(k)){
+     let it=im.get(k);
+     d.className="cell item";
+     d.textContent=it.ic||"?";
+     d.title=safeDn?safeDn(it):dn(it);
+     d.onclick=()=>{if(S&&Number(it.x)===Number(S.p.x)&&Number(it.y)===Number(S.p.y)){pickupAt(it.x,it.y,false);render()}else logRender("アイテムの上に乗ってから拾ってください。")};
+   }else if(S.map[y][x]===FLOOR)d.textContent="·";
+   if(S.fx&&Number(S.fx.x)===x&&Number(S.fx.y)===y)d.className+=" hitEffect";
+   E.b.appendChild(d);
+ }
+}
+function simpleInvFallback(){
+ try{
+   if(!E||!E.inv)return;
+   if(!S||!S.p||!Array.isArray(S.p.inv)){E.inv.innerHTML="<div class='emptyItem'>持ち物なし</div>";return}
+   E.inv.innerHTML=S.p.inv.filter(Boolean).map(it=>`<div class="row"><button class="itemLine">${esc(safeDn(it))}</button></div>`).join("")||"<div class='emptyItem'>持ち物なし</div>";
+   if(E.bag)E.bag.innerHTML=`持ち物 ${S.p.inv.length}/${bagMax()}`;
+ }catch(e){console.error(e)}
+}
+function render(){
+ if(!S){empty();return}
+ try{renderBoard()}catch(e){console.error(e)}
+ try{update()}catch(e){console.error(e)}
+ try{renderInv()}catch(e){console.error(e);simpleInvFallback()}
+ try{renderShop()}catch(e){console.error(e)}
+ try{renderLog()}catch(e){console.error(e)}
+}
 function update(){if(S)normalizeInventory();let d=S?.du||DUN[E.ds.value]||DUN.beginner;E.sf.textContent=S?String(`${S.f}/${d.max}`):"-";E.sl.textContent=S?String(S.p.lv):"-";E.hp.textContent=S?String(`${S.p.hp}/${S.p.mhp}`):"-";E.fo.textContent=S?String(S.p.food):"-";E.go.textContent=S?String(S.p.g):"-";if(E.sa)E.sa.textContent=S?String(atk()):"-";if(E.sd)E.sd.textContent=S?String(def()):"-";E.ew.textContent=S?String(safeDn(equipItem("weapon"))):"なし";E.es.textContent=S?String(safeDn(equipItem("shield"))):"なし";E.err.textContent=S?String(safeDn(equipItem("ringR"))):"なし";E.erl.textContent=S?String(safeDn(equipItem("ringL"))):"なし";if(E.ear)E.ear.textContent=S?String(safeDn(equipItem("arrow"))):"なし"}
 function renderInv(){
  try{
@@ -222,8 +310,8 @@ function inventoryClick(ev){
 }
 function renderShop(){E.shop.innerHTML="";if(!S||!S.shop||S.p.x!==S.shop.x||S.p.y!==S.shop.y){E.shop.className="list muted";E.shop.textContent="店に乗ると商品が表示されます。手持ちアイテムの「売る」ボタンで売却できます。";return}E.shop.className="list";if(!S.shop.goods.length){E.shop.textContent="売り切れです。";return}S.shop.goods.forEach((it,i)=>{let r=document.createElement("div");r.className="shopItem";r.innerHTML=`<div>${esc(it.ic)} ${esc(dn(it))}<span class="desc">${it.p}G / ${esc(dd(it))}</span></div>`;let b=document.createElement("button");b.textContent="購入";b.onclick=()=>buy(i);r.appendChild(b);E.shop.appendChild(r)})}
 function renderLog(){E.log.innerHTML=(S?S.log.slice(-90):[]).slice().reverse().map(x=>`<div>${esc(x)}</div>`).join("")}
-function log(x){if(!S)return;S.log.push(x);if(E&&E.log)renderLog()}
-function refreshPanels(){update();renderInv();renderLog()}
+function log(x){if(!S)return;S.log.push(x);try{if(E&&E.log)renderLog()}catch(e){console.error(e)}}
+function refreshPanels(){try{update()}catch(e){console.error(e)}try{renderInv()}catch(e){console.error(e);simpleInvFallback()}try{renderLog()}catch(e){console.error(e)}}
 function logRender(x){log(x);renderLog()}function inside(x,y){return x>=0&&y>=0&&x<SIZE&&y<SIZE}
 function wh(){return JSON.parse(localStorage.md_warehouse_v030||"[]")}function writeWh(a){localStorage.md_warehouse_v030=JSON.stringify(a.slice(0,100))}function sortItems(a){a.sort((x,y)=>{let A=[CAT_ORDER[x.cat]||99,x.k,-(x.plus||0),x.n],B=[CAT_ORDER[y.cat]||99,y.k,-(y.plus||0),y.n];for(let i=0;i<A.length;i++){if(A[i]<B[i])return-1;if(A[i]>B[i])return 1}return 0});return a}
 function renderWh(){let a=wh();E.wh.innerHTML="";if(!a.length){E.wh.textContent="倉庫は空です。";return}a.forEach(it=>{let b=document.createElement("button");b.className="row"+(selWh===it.id?" sel":"");b.innerHTML=`${esc(it.ic)} ${esc((it.n||dn(it,false))+plusText(it)+(it.qty?`×${it.qty}`:"")+(it.ch!=null?`［${it.ch}］`:""))}<span class="desc">${esc((it.d||"")+effectText(it))}</span>`;b.onclick=()=>{selWh=it.id;renderWh()};E.wh.appendChild(b)})}
