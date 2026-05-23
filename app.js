@@ -1,4 +1,4 @@
-const APP_VERSION="0.3.8";
+const APP_VERSION="0.3.9";
 const GAS_URL="https://script.google.com/macros/s/AKfycbzUJb7b8I7w5HG7h7OeR-43vawtbcBiudTLO2qzOhOrt4O9IYxIRnhObWn9-n3Io5dUoA/exec";
 const SIZE=15,WALL=0,FLOOR=1;
 const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0],"up-left":[-1,-1],"up-right":[1,-1],"down-left":[-1,1],"down-right":[1,1]};
@@ -22,7 +22,7 @@ let S=null,last=null,sel="",selWh="",held=new Set(),faceMode=false;
 const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a,C=a=>a[R(0,a.length-1)],uid=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),cl=(v,a,b)=>Math.max(a,Math.min(b,v)),esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 function init(){E.name.value=localStorage.md_player_name||"";E.ds.value=localStorage.md_dungeon_id||"beginner";bind();empty();renderWh();loadRank();sw()}
 function bind(){
- $("btnNewGame").onclick=start;$("btnRanking").onclick=loadRank;$("btnUpdate").onclick=hardUpdate;$("btnWait").onclick=()=>turn(0,0);$("btnAttack").onclick=attackButton;$("btnShoot").onclick=shootSelected;$("btnLook").onclick=lookFloor;$("btnPickup").onclick=pickFloor;$("btnFaceMode").onclick=toggleFaceMode;$("btnUse").onclick=use;$("btnEquip").onclick=()=>equip();$("btnDrop").onclick=dropSelected;$("btnSwapFloor").onclick=swapFloor;$("btnSortInv").onclick=sortInvButton;$("btnReturn").onclick=ret;$("btnGiveUp").onclick=giveup;$("btnTakeWh").onclick=takeWh;$("btnSortWh").onclick=sortWh;E.sub.onclick=submit;$("btnClose").onclick=()=>E.res.close();E.ds.onchange=()=>{localStorage.md_dungeon_id=E.ds.value;loadRank()};
+ $("btnNewGame").onclick=start;$("btnRanking").onclick=loadRank;$("btnUpdate").onclick=hardUpdate;$("btnWait").onclick=()=>turn(0,0);$("btnAttack").onclick=attackButton;$("btnShoot").onclick=shootSelected;$("btnLook").onclick=lookFloor;$("btnPickup").onclick=pickFloor;$("btnFaceMode").onclick=toggleFaceMode;$("btnUse").onclick=use;$("btnEquip").onclick=()=>equip();$("btnDrop").onclick=dropSelected;$("btnSwapFloor").onclick=swapFloor;$("btnSortInv").onclick=sortInvButton;$("btnReturn").onclick=ret;$("btnGiveUp").onclick=giveup;$("btnTakeWh").onclick=takeWh;$("btnSortWh").onclick=sortWh;E.sub.onclick=submit;$("btnClose").onclick=()=>E.res.close();E.inv.onclick=inventoryClick;E.ds.onchange=()=>{localStorage.md_dungeon_id=E.ds.value;loadRank()};
  document.querySelectorAll("[data-dir]").forEach(x=>x.onclick=()=>{let [dx,dy]=DIRS[x.dataset.dir];if(faceMode){setFace(dx,dy);faceMode=false;updateFaceButton();return}S&&(S.face={dx,dy});turn(dx,dy)});
  window.addEventListener("keydown",ev=>handleKey(ev));window.addEventListener("keyup",ev=>{held.delete(normKey(ev.key))});
 }
@@ -123,11 +123,61 @@ function score(clear=false){return Math.floor(S.f*140*S.du.dif+S.p.lv*90+S.p.g+S
 function empty(){E.b.innerHTML="";for(let i=0;i<SIZE*SIZE;i++){let d=document.createElement("div");d.className="cell wall";E.b.appendChild(d)}update();renderInv();renderShop()}
 function render(){if(!S){empty();return}normalizeItems();pickupAt(S.p.x,S.p.y,true);let im=new Map(S.items.map(x=>[`${x.x},${x.y}`,x])),em=new Map(S.en.map(x=>[`${x.x},${x.y}`,x]));E.b.innerHTML="";for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){let d=document.createElement("div"),k=`${x},${y}`;d.className="cell "+(S.map[y][x]===WALL?"wall":"floor");if(S.p.x===x&&S.p.y===y){d.className="cell player "+faceClass();d.textContent="主"}else if(em.has(k)){let e=em.get(k);d.className="cell enemy";d.textContent=e.ic;d.title=`${e.n} HP:${e.hp}/${e.mhp}`}else if(S.st.x===x&&S.st.y===y){d.className="cell stairs";d.textContent="▽"}else if(S.shop&&S.shop.x===x&&S.shop.y===y){d.className="cell shopTile";d.textContent="店"}else if(im.has(k)){let it=im.get(k);d.className="cell item";d.textContent=it.ic;d.title=dn(it);d.onclick=()=>{if(S&&Number(it.x)===Number(S.p.x)&&Number(it.y)===Number(S.p.y)){pickupAt(it.x,it.y,false);render()}else logRender("アイテムの上に乗ってから拾ってください。")}}else if(S.map[y][x]===FLOOR)d.textContent="·";if(S.fx&&S.fx.x===x&&S.fx.y===y)d.className+=" hitEffect";E.b.appendChild(d)}update();renderInv();renderShop();renderLog()}
 function update(){let d=S?.du||DUN[E.ds.value]||DUN.beginner;E.sf.textContent=S?String(`${S.f}/${d.max}`):"-";E.sl.textContent=S?String(S.p.lv):"-";E.hp.textContent=S?String(`${S.p.hp}/${S.p.mhp}`):"-";E.fo.textContent=S?String(S.p.food):"-";E.go.textContent=S?String(S.p.g):"-";if(E.sa)E.sa.textContent=S?String(atk()):"-";if(E.sd)E.sd.textContent=S?String(def()):"-";E.ew.textContent=S?String(dn(equipItem("weapon"))):"なし";E.es.textContent=S?String(dn(equipItem("shield"))):"なし";E.err.textContent=S?String(dn(equipItem("ringR"))):"なし";E.erl.textContent=S?String(dn(equipItem("ringL"))):"なし";if(E.ear)E.ear.textContent=S?String(dn(equipItem("arrow"))):"なし"}
-function renderInv(){if(!S){E.inv.textContent="冒険前です。倉庫から持ち出して開始できます。";E.bag.textContent="-";return}let fi=floorItem();E.bag.innerHTML=`持ち物 ${S.p.inv.length}/${bagMax()} / 攻撃 ${atk()} / 防御 ${def()}${S.p.poison?" / 毒":""}${S.canReturn?"<div class='floorHint'>帰還ポイント：帰還可能</div>":""}${fi?`<div class='floorHint'>足元：${esc(dn(fi))}（拾うボタンで取得）</div>`:""}`;E.inv.innerHTML="";if(!S.p.inv.length){E.inv.textContent="持ち物なし";return}S.p.inv.forEach(it=>{let wrap=document.createElement("div");wrap.className="row"+(sel===it.id?" sel":"")+(isEq(it)?" equipped":"");let main=document.createElement("button");main.className="itemLine";main.innerHTML=`${esc(it.ic)} ${esc(dn(it))}${isEq(it)?" <span class='eqMark'>装備中</span>":""}<span class="desc">${esc(dd(it))}</span>`;main.onclick=()=>{sel=it.id;renderInv()};wrap.appendChild(main);let acts=document.createElement("div");acts.className="rowActions";let mk=(txt,fn,cls="")=>{let b=document.createElement("button");b.textContent=txt;if(cls)b.className=cls;b.onclick=(ev)=>{ev.stopPropagation();sel=it.id;fn(it.id)};acts.appendChild(b)};if(isEq(it))mk("外す",unequip,"safeMini");else if(it.cat==="weapon"||it.cat==="shield")mk("装備",()=>equip(it.id),"mainMini");else if(it.cat==="ring"){mk("右装備",()=>equip(it.id,"ringR"),"mainMini");mk("左装備",()=>equip(it.id,"ringL"),"mainMini")}else if(it.cat==="arrow"){mk("装備",()=>equip(it.id,"arrow"),"mainMini");mk("撃つ",shootSelected,"mainMini")}else mk("使う",()=>use(it.id),"mainMini");if(!isEq(it)){mk("置く",dropSelected,"dangerMini");if(fi)mk("床と交換",swapFloor);if(inShop())mk("売る",sellItem,"safeMini")}wrap.appendChild(acts);E.inv.appendChild(wrap)})}
+function renderInv(){
+ if(!S){E.inv.textContent="冒険前です。倉庫から持ち出して開始できます。";E.bag.textContent="-";return}
+ let fi=floorItem();
+ E.bag.innerHTML=`持ち物 ${S.p.inv.length}/${bagMax()} / 攻撃 ${atk()} / 防御 ${def()}${S.p.poison?" / 毒":""}${S.canReturn?"<div class='floorHint'>帰還ポイント：帰還可能</div>":""}${fi?`<div class='floorHint'>足元：${esc(dn(fi))}（拾うボタンで取得）</div>`:""}`;
+ if(!S.p.inv.length){E.inv.innerHTML="<div class='emptyItem'>持ち物なし</div>";return}
+ E.inv.innerHTML=S.p.inv.map(it=>{
+   const eq=isEq(it);
+   let actions="";
+   if(eq){
+     actions+=`<button data-act="unequip" data-id="${esc(it.id)}" class="safeMini">外す</button>`;
+   }else if(it.cat==="weapon"||it.cat==="shield"){
+     actions+=`<button data-act="equip" data-id="${esc(it.id)}" class="mainMini">装備</button>`;
+   }else if(it.cat==="ring"){
+     actions+=`<button data-act="equipR" data-id="${esc(it.id)}" class="mainMini">右装備</button>`;
+     actions+=`<button data-act="equipL" data-id="${esc(it.id)}" class="mainMini">左装備</button>`;
+   }else if(it.cat==="arrow"){
+     actions+=`<button data-act="equipArrow" data-id="${esc(it.id)}" class="mainMini">装備</button>`;
+     actions+=`<button data-act="shoot" data-id="${esc(it.id)}" class="mainMini">撃つ</button>`;
+   }else{
+     actions+=`<button data-act="use" data-id="${esc(it.id)}" class="mainMini">使う</button>`;
+   }
+   if(!eq){
+     actions+=`<button data-act="drop" data-id="${esc(it.id)}" class="dangerMini">置く</button>`;
+     if(fi)actions+=`<button data-act="swap" data-id="${esc(it.id)}">床と交換</button>`;
+     if(inShop())actions+=`<button data-act="sell" data-id="${esc(it.id)}" class="safeMini">売る</button>`;
+   }
+   return `<div class="row${sel===it.id?" sel":""}${eq?" equipped":""}" data-id="${esc(it.id)}">
+     <button class="itemLine" data-act="select" data-id="${esc(it.id)}">${esc(it.ic)} ${esc(dn(it))}${eq?" <span class='eqMark'>装備中</span>":""}<span class="desc">${esc(dd(it))}</span></button>
+     <div class="rowActions">${actions}</div>
+   </div>`;
+ }).join("");
+}
+function inventoryClick(ev){
+ if(!S||S.end)return;
+ const btn=ev.target.closest?ev.target.closest("[data-act]"):null;
+ if(!btn)return;
+ const id=btn.getAttribute("data-id");
+ const act=btn.getAttribute("data-act");
+ if(id)sel=id;
+ if(act==="select"){renderInv();return}
+ if(act==="use")use(id);
+ else if(act==="equip")equip(id);
+ else if(act==="equipR")equip(id,"ringR");
+ else if(act==="equipL")equip(id,"ringL");
+ else if(act==="equipArrow")equip(id,"arrow");
+ else if(act==="shoot")shootSelected(id);
+ else if(act==="unequip")unequip(id);
+ else if(act==="drop")dropSelected(id);
+ else if(act==="swap")swapFloor(id);
+ else if(act==="sell")sellItem(id);
+}
 function renderShop(){E.shop.innerHTML="";if(!S||!S.shop||S.p.x!==S.shop.x||S.p.y!==S.shop.y){E.shop.className="list muted";E.shop.textContent="店に乗ると商品が表示されます。手持ちアイテムの「売る」ボタンで売却できます。";return}E.shop.className="list";if(!S.shop.goods.length){E.shop.textContent="売り切れです。";return}S.shop.goods.forEach((it,i)=>{let r=document.createElement("div");r.className="shopItem";r.innerHTML=`<div>${esc(it.ic)} ${esc(dn(it))}<span class="desc">${it.p}G / ${esc(dd(it))}</span></div>`;let b=document.createElement("button");b.textContent="購入";b.onclick=()=>buy(i);r.appendChild(b);E.shop.appendChild(r)})}
-function renderLog(){E.log.innerHTML="";(S?S.log.slice(-90):[]).slice().reverse().forEach(x=>{let d=document.createElement("div");d.textContent=x;E.log.appendChild(d)})}
+function renderLog(){E.log.innerHTML=(S?S.log.slice(-90):[]).slice().reverse().map(x=>`<div>${esc(x)}</div>`).join("")}
 function log(x){if(!S)return;S.log.push(x);if(E&&E.log)renderLog()}
-function refreshPanels(){try{update();renderInv();renderLog()}catch(e){}}
+function refreshPanels(){try{update();renderInv();renderLog()}catch(e){console.error(e);if(E&&E.inv&&S)E.inv.innerHTML=`<div class="emptyItem">持ち物 ${S.p.inv.length}/${bagMax()} 件（表示更新エラー）</div>`}}
 function logRender(x){log(x);renderLog()}function inside(x,y){return x>=0&&y>=0&&x<SIZE&&y<SIZE}
 function wh(){return JSON.parse(localStorage.md_warehouse_v030||"[]")}function writeWh(a){localStorage.md_warehouse_v030=JSON.stringify(a.slice(0,100))}function sortItems(a){a.sort((x,y)=>{let A=[CAT_ORDER[x.cat]||99,x.k,-(x.plus||0),x.n],B=[CAT_ORDER[y.cat]||99,y.k,-(y.plus||0),y.n];for(let i=0;i<A.length;i++){if(A[i]<B[i])return-1;if(A[i]>B[i])return 1}return 0});return a}
 function renderWh(){let a=wh();E.wh.innerHTML="";if(!a.length){E.wh.textContent="倉庫は空です。";return}a.forEach(it=>{let b=document.createElement("button");b.className="row"+(selWh===it.id?" sel":"");b.innerHTML=`${esc(it.ic)} ${esc((it.n||dn(it,false))+plusText(it)+(it.qty?`×${it.qty}`:"")+(it.ch!=null?`［${it.ch}］`:""))}<span class="desc">${esc((it.d||"")+effectText(it))}</span>`;b.onclick=()=>{selWh=it.id;renderWh()};E.wh.appendChild(b)})}

@@ -30,3 +30,5 @@
 .cell.item{cursor:pointer;outline:1px solid rgba(255,255,255,.25)}
 
 #btnPickup{box-shadow:0 0 0 3px rgba(255,209,102,.22)}
+
+.emptyItem{color:var(--muted);padding:8px;}
