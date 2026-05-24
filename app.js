@@ -1,4 +1,4 @@
-const APP_VERSION="0.4.1";
+const APP_VERSION="0.4.2";
 const GAS_URL="https://script.google.com/macros/s/AKfycbzUJb7b8I7w5HG7h7OeR-43vawtbcBiudTLO2qzOhOrt4O9IYxIRnhObWn9-n3Io5dUoA/exec";
 const SIZE=15,WALL=0,FLOOR=1;
 const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0],"up-left":[-1,-1],"up-right":[1,-1],"down-left":[-1,1],"down-right":[1,1]};
@@ -22,7 +22,7 @@ let S=null,last=null,sel="",selWh="",held=new Set(),faceMode=false;
 const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a,C=a=>a[R(0,a.length-1)],uid=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),cl=(v,a,b)=>Math.max(a,Math.min(b,v)),esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 function init(){E.name.value=localStorage.md_player_name||"";E.ds.value=localStorage.md_dungeon_id||"beginner";bind();empty();renderWh();loadRank();sw()}
 function bind(){
- $("btnNewGame").onclick=start;$("btnRanking").onclick=loadRank;$("btnUpdate").onclick=hardUpdate;$("btnWait").onclick=()=>turn(0,0);$("btnAttack").onclick=attackButton;$("btnShoot").onclick=shootSelected;$("btnLook").onclick=lookFloor;$("btnPickup").onclick=pickFloor;$("btnFaceMode").onclick=toggleFaceMode;$("btnUse").onclick=use;$("btnEquip").onclick=()=>equip();$("btnDrop").onclick=dropSelected;$("btnSwapFloor").onclick=swapFloor;$("btnSortInv").onclick=sortInvButton;$("btnReturn").onclick=ret;$("btnGiveUp").onclick=giveup;$("btnTakeWh").onclick=takeWh;$("btnSortWh").onclick=sortWh;E.sub.onclick=submit;$("btnClose").onclick=()=>E.res.close();E.inv.onclick=inventoryClick;E.ds.onchange=()=>{localStorage.md_dungeon_id=E.ds.value;loadRank()};
+ $("btnNewGame").onclick=start;$("btnRanking").onclick=loadRank;$("btnUpdate").onclick=hardUpdate;$("btnWait").onclick=()=>turn(0,0);$("btnAttack").onclick=attackButton;$("btnShoot").onclick=shootSelected;$("btnLook").onclick=lookFloor;$("btnPickup").onclick=pickFloor;$("btnFaceMode").onclick=toggleFaceMode;$("btnUse").onclick=use;$("btnEquip").onclick=()=>equip();$("btnDrop").onclick=dropSelected;$("btnSwapFloor").onclick=swapFloor;$("btnSortInv").onclick=sortInvButton;$("btnReturn").onclick=ret;$("btnGiveUp").onclick=giveup;$("btnTakeWh").onclick=takeWh;$("btnSortWh").onclick=sortWh;E.sub.onclick=submit;$("btnClose").onclick=()=>E.res.close();E.inv.onclick=inventoryClick;E.shop.onclick=shopClick;E.ds.onchange=()=>{localStorage.md_dungeon_id=E.ds.value;loadRank()};
  document.querySelectorAll("[data-dir]").forEach(x=>x.onclick=()=>{let [dx,dy]=DIRS[x.dataset.dir];if(faceMode){setFace(dx,dy);faceMode=false;updateFaceButton();return}S&&(S.face={dx,dy});turn(dx,dy)});
  window.addEventListener("keydown",ev=>handleKey(ev));window.addEventListener("keyup",ev=>{held.delete(normKey(ev.key))});
 }
@@ -90,11 +90,11 @@ function emptyTile(){let a=floors();for(let i=0;i<300;i++){let p=C(a);if(p.x===S
 function randItem(){let table=DROP[S.du.id]||DROP.beginner,k=C(table);if(S.f>=8&&Math.random()<.28)k=C(["sw2","sh2","swsl","swtri","swr","shp","shf","sht","rf","rg","ps","pc","ws","sr","sa","sd","ar2"]);return item(k,false,true)}
 function spawn(){let p=emptyTile(),base=S.f<=2?EN[0]:S.f<=4?C(EN.slice(0,2)):S.f<=7?C(EN.slice(0,4)):S.f<=12?C(EN.slice(1,5)):C(EN),d=S.du.dif;S.en.push({id:uid(),x:p.x,y:p.y,defId:base.id,tribe:base.tribe,n:base.n,ic:base.ic,ab:base.ab,hp:Math.floor((base.hp+S.f*2)*d),mhp:Math.floor((base.hp+S.f*2)*d),atk:Math.floor((base.a+Math.floor(S.f/2))*d),ex:Math.floor((base.ex+S.f)*d),slow:0,sleep:0,stole:false})}
 function mkShop(){let p=emptyTile(),goods=[];for(let i=0;i<R(3,5);i++){let it=randItem();it.p=Math.floor(it.p*1.2);goods.push(it)}S.shop={x:p.x,y:p.y,goods}}
-function findItem(id){return S.p.inv.find(x=>x.id===id)}
-function equipItem(slot){return findItem(S.p.eq[slot])}
+function findItem(id){return S&&S.p&&Array.isArray(S.p.inv)?S.p.inv.find(x=>x&&x.id===id):null}
+function equipItem(slot){if(!S||!S.p)return null;try{normalizeInventory()}catch(e){}let id=S.p.eq&&S.p.eq[slot];return findItem(id)||null}
 function hasEff(e){return [equipItem("weapon"),equipItem("shield"),equipItem("ringR"),equipItem("ringL")].some(it=>it?.ef?.includes(e))}
-function atk(){let v=S.p.atk;let w=equipItem("weapon");if(w)v+=w.pow+(w.plus||0);for(const r of [equipItem("ringR"),equipItem("ringL")])if(r?.k==="rp")v+=2+(r.plus||0);return S.p.poison?Math.max(1,v-2):v}
-function def(){let v=S.p.def;let s=equipItem("shield");if(s)v+=s.pow+(s.plus||0);return v}
+function atk(){let v=Number(S?.p?.atk||0);let w=equipItem("weapon");if(w)v+=Number(w.pow||0)+Number(w.plus||0);for(const r of [equipItem("ringR"),equipItem("ringL")])if(r?.k==="rp")v+=2+Number(r.plus||0);return S?.p?.poison?Math.max(1,v-2):v}
+function def(){let v=Number(S?.p?.def||0);let s=equipItem("shield");if(s)v+=Number(s.pow||0)+Number(s.plus||0);return v}
 function turn(dx,dy){
  if(!S||S.end)return;
  try{normalizeItems()}catch(e){console.error(e)}
@@ -135,6 +135,28 @@ function shootSelected(idv=sel){if(!S||S.end)return;let it=equipItem("arrow")||f
 function dropArrowAt(src,x,y){let p=dropTile(x,y);let on=S.items.find(it=>Number(it.x)===p.x&&Number(it.y)===p.y&&it.k===src.k&&it.cat==="arrow");if(on){on.qty=(on.qty||0)+1;return}let a=item(src.k,true,false);a.qty=1;a.x=p.x;a.y=p.y;S.items.push(a)}
 function lookFloor(){if(!S||S.end)return;let it=floorItem();if(it)logRender(`足元には ${dn(it)} があります。${dd(it)}`);else logRender("足元にアイテムはありません。")}
 function effect(x,y){S.fx={x,y,t:Date.now()};setTimeout(()=>{if(S&&S.fx&&S.fx.x===x&&S.fx.y===y){S.fx=null;render()}},420)}
+function farEnemySpawnTile(){
+ if(!S)return null;
+ let fs=floors().filter(p=>{
+   if(Math.max(Math.abs(Number(p.x)-Number(S.p.x)),Math.abs(Number(p.y)-Number(S.p.y)))<4)return false;
+   if(Number(p.x)===Number(S.st.x)&&Number(p.y)===Number(S.st.y))return false;
+   if(S.en.some(e=>Number(e.x)===Number(p.x)&&Number(e.y)===Number(p.y)))return false;
+   if(S.shop&&Number(S.shop.x)===Number(p.x)&&Number(S.shop.y)===Number(p.y))return false;
+   return true;
+ });
+ return fs.length?C(fs):null;
+}
+function spawnTimedEnemy(){
+ if(!S||S.end)return false;
+ if(S.en.length>=18)return false;
+ const p=farEnemySpawnTile();
+ if(!p)return false;
+ const base=S.f<=2?EN[0]:S.f<=4?C(EN.slice(0,2)):S.f<=7?C(EN.slice(0,4)):S.f<=12?C(EN.slice(1,5)):C(EN);
+ const d=S.du.dif;
+ S.en.push({id:uid(),x:p.x,y:p.y,defId:base.id,tribe:base.tribe,n:base.n,ic:base.ic,ab:base.ab,hp:Math.floor((base.hp+S.f*2)*d),mhp:Math.floor((base.hp+S.f*2)*d),atk:Math.floor((base.a+Math.floor(S.f/2))*d),ex:Math.floor((base.ex+S.f)*d),slow:0,sleep:0,stole:false});
+ log("遠くから敵の気配がします。");
+ return true;
+}
 function after(){
  S.t++;
  hunger();
@@ -143,6 +165,7 @@ function after(){
  if(!S||S.end){render();return}
  if(S.p.hp<=0){finish("HPが0になりました。",false,false);return}
  if(S.t%8===0&&S.p.hp<S.p.mhp&&S.p.food>0)S.p.hp++;
+ if(S.t%10===0)spawnTimedEnemy();
  try{normalizeItems();pickupAt(S.p.x,S.p.y,true)}catch(e){console.error(e)}
  try{renderBoard()}catch(e){console.error(e)}
  refreshPanels()
@@ -169,7 +192,19 @@ function addInv(it){it=normalizeOneItem(it);if(it.cat==="arrow"){let same=S.p.in
 function floorItem(){return itemAtPlayer()}
 function dropSelected(idv=sel){if(!S||S.end)return;let it=findItem(idv);if(!it){log("置くアイテムを選択してください。");render();return}if(isEq(it)){log("装備中のアイテムは外してから置いてください。");render();return}if(floorItem()){log("足元にアイテムがあります。床と交換を使ってください。");render();return}removeIt(it.id);it.x=S.p.x;it.y=S.p.y;S.items.push(it);log(`${dn(it,false)}を床に置きました。`);render()}
 function swapFloor(idv=sel){if(!S||S.end)return;let ground=floorItem(),it=findItem(idv);if(!ground){log("足元に交換するアイテムがありません。");render();return}if(!it){log("交換する手持ちアイテムを選択してください。");render();return}if(isEq(it)){log("装備中のアイテムは交換できません。外してから交換してください。");render();return}S.items=S.items.filter(x=>x.id!==ground.id);removeIt(it.id);it.x=S.p.x;it.y=S.p.y;S.items.push(it);delete ground.x;delete ground.y;addInv(ground);sel=ground.id;log(`${dn(it,false)}と${dn(ground,false)}を交換しました。`);render()}
-function stairs(){if(S.p.x!==S.st.x||S.p.y!==S.st.y)return;if(S.f>=S.du.max){finish("最深部に到達しました。ダンジョンクリア！",true,true);return}S.f++;S.canReturn=S.f%5===0;log(`${S.f}階へ進みました。`);if(S.canReturn)log("帰還ポイントです。帰還ボタンで持ち帰れます。");floor(false)}
+function stairs(){
+ if(Number(S.p.x)!==Number(S.st.x)||Number(S.p.y)!==Number(S.st.y))return;
+ const next=S.f+1;
+ const msg=S.f>=S.du.max?"最深部に到達します。進みますか？":`${next}階へ進みますか？`;
+ if(typeof confirm==="function"&&!confirm(msg)){log("階段を降りるのをやめました。");refreshPanels();return}
+ if(S.f>=S.du.max){finish("最深部に到達しました。ダンジョンクリア！",true,true);return}
+ S.f++;
+ S.canReturn=S.f%5===0;
+ log(`${S.f}階へ進みました。`);
+ if(S.canReturn)log("帰還ポイントです。帰還ボタンで持ち帰れます。");
+ floor(false);
+ render();
+}
 function use(idv=sel){if(!S||S.end)return;let it=findItem(idv);if(!it){log("使うアイテムを選択してください。");render();return}know(it.k);if(["weapon","shield","ring"].includes(it.cat)){log("装備品です。装備ボタンを使用してください。");render();return}if(it.cat==="arrow"){shootSelected(it.id);return}if(it.k==="h1")heal(25);else if(it.k==="h2")heal(60);else if(it.k==="hp"){S.p.atk++;log("ちからが上がりました。")}else if(it.k==="po"){S.p.poison=false;log("毒が消えました。")}else if(it.k==="bread"){S.p.food=cl(S.p.food+50,0,100);log("パンを食べました。満腹度が回復しました。")}else if(it.k==="si"){S.p.inv.forEach(x=>know(x.k));log("持ち物をすべて識別しました。")}else if(it.k==="st")thunder();else if(it.k==="ww")warp();else if(it.k==="sr"){removeIt(it.id);finish("帰還の巻物で無事に帰りました。",false,true);return}else if(it.k==="sa")enhance("weapon");else if(it.k==="sd")enhance("shield");else if(it.cat==="wand")wand(it);else if(it.cat==="pot")pot(it);else log("何も起きませんでした。");consume(it);after()}
 function consume(it){if(!findItem(it.id))return;if(it.ch!=null){it.ch--;if(it.ch<=0){log(`${it.n}は空になりました。`);removeIt(it.id)}}else removeIt(it.id)}
 function heal(n){S.p.hp=cl(S.p.hp+n,1,S.p.mhp);log(`HPが${n}回復しました。`)}
@@ -244,7 +279,23 @@ function render(){
  try{renderShop()}catch(e){console.error(e)}
  try{renderLog()}catch(e){console.error(e)}
 }
-function update(){if(S)normalizeInventory();let d=S?.du||DUN[E.ds.value]||DUN.beginner;E.sf.textContent=S?String(`${S.f}/${d.max}`):"-";E.sl.textContent=S?String(S.p.lv):"-";E.hp.textContent=S?String(`${S.p.hp}/${S.p.mhp}`):"-";E.fo.textContent=S?String(S.p.food):"-";E.go.textContent=S?String(S.p.g):"-";if(E.sa)E.sa.textContent=S?String(atk()):"-";if(E.sd)E.sd.textContent=S?String(def()):"-";E.ew.textContent=S?String(safeDn(equipItem("weapon"))):"なし";E.es.textContent=S?String(safeDn(equipItem("shield"))):"なし";E.err.textContent=S?String(safeDn(equipItem("ringR"))):"なし";E.erl.textContent=S?String(safeDn(equipItem("ringL"))):"なし";if(E.ear)E.ear.textContent=S?String(safeDn(equipItem("arrow"))):"なし"}
+function setTxt(el,val){if(el)el.textContent=String(val)}
+function update(){
+ if(S)normalizeInventory();
+ let d=S?.du||DUN[E.ds.value]||DUN.beginner;
+ setTxt(E.sf,S?`${S.f}/${d.max}`:"-");
+ setTxt(E.sl,S?S.p.lv:"-");
+ setTxt(E.hp,S?`${S.p.hp}/${S.p.mhp}`:"-");
+ setTxt(E.fo,S?S.p.food:"-");
+ setTxt(E.go,S?S.p.g:"-");
+ setTxt(E.sa,S?atk():"-");
+ setTxt(E.sd,S?def():"-");
+ setTxt(E.ew,S?safeDn(equipItem("weapon")):"なし");
+ setTxt(E.es,S?safeDn(equipItem("shield")):"なし");
+ setTxt(E.err,S?safeDn(equipItem("ringR")):"なし");
+ setTxt(E.erl,S?safeDn(equipItem("ringL")):"なし");
+ setTxt(E.ear,S?safeDn(equipItem("arrow")):"なし");
+}
 function renderInv(){
  try{
    if(!S){E.inv.textContent="冒険前です。倉庫から持ち出して開始できます。";E.bag.textContent="-";return}
@@ -308,10 +359,25 @@ function inventoryClick(ev){
  else if(act==="swap")swapFloor(id);
  else if(act==="sell")sellItem(id);
 }
-function renderShop(){E.shop.innerHTML="";if(!S||!S.shop||S.p.x!==S.shop.x||S.p.y!==S.shop.y){E.shop.className="list muted";E.shop.textContent="店に乗ると商品が表示されます。手持ちアイテムの「売る」ボタンで売却できます。";return}E.shop.className="list";if(!S.shop.goods.length){E.shop.textContent="売り切れです。";return}S.shop.goods.forEach((it,i)=>{let r=document.createElement("div");r.className="shopItem";r.innerHTML=`<div>${esc(it.ic)} ${esc(dn(it))}<span class="desc">${it.p}G / ${esc(dd(it))}</span></div>`;let b=document.createElement("button");b.textContent="購入";b.onclick=()=>buy(i);r.appendChild(b);E.shop.appendChild(r)})}
+function renderShop(){
+ if(!E.shop)return;
+ if(!S||!S.shop||Number(S.p.x)!==Number(S.shop.x)||Number(S.p.y)!==Number(S.shop.y)){
+   E.shop.className="list muted";
+   E.shop.textContent="店に乗ると商品が表示されます。手持ちアイテムの「売る」ボタンで売却できます。";
+   return;
+ }
+ E.shop.className="list";
+ if(!S.shop.goods||!S.shop.goods.length){E.shop.textContent="売り切れです。";return}
+ E.shop.innerHTML=S.shop.goods.map((raw,i)=>{
+   const it=normalizeOneItem(raw);
+   return `<div class="shopItem"><div>${esc(it.ic)} ${esc(safeDn(it))}<span class="desc">${it.p}G / ${esc(safeDd(it))}</span></div><button data-buy="${i}">購入</button></div>`;
+ }).join("");
+ E.shop.querySelectorAll&&E.shop.querySelectorAll("[data-buy]").forEach(b=>b.onclick=()=>buy(Number(b.getAttribute("data-buy"))));
+}
+function shopClick(ev){const btn=ev.target.closest?ev.target.closest("[data-buy]"):null;if(!btn)return;buy(Number(btn.getAttribute("data-buy")))}
 function renderLog(){E.log.innerHTML=(S?S.log.slice(-90):[]).slice().reverse().map(x=>`<div>${esc(x)}</div>`).join("")}
 function log(x){if(!S)return;S.log.push(x);try{if(E&&E.log)renderLog()}catch(e){console.error(e)}}
-function refreshPanels(){try{update()}catch(e){console.error(e)}try{renderInv()}catch(e){console.error(e);simpleInvFallback()}try{renderLog()}catch(e){console.error(e)}}
+function refreshPanels(){try{update()}catch(e){console.error(e)}try{renderInv()}catch(e){console.error(e);simpleInvFallback()}try{renderShop()}catch(e){console.error(e)}try{renderLog()}catch(e){console.error(e)}}
 function logRender(x){log(x);renderLog()}function inside(x,y){return x>=0&&y>=0&&x<SIZE&&y<SIZE}
 function wh(){return JSON.parse(localStorage.md_warehouse_v030||"[]")}function writeWh(a){localStorage.md_warehouse_v030=JSON.stringify(a.slice(0,100))}function sortItems(a){a.sort((x,y)=>{let A=[CAT_ORDER[x.cat]||99,x.k,-(x.plus||0),x.n],B=[CAT_ORDER[y.cat]||99,y.k,-(y.plus||0),y.n];for(let i=0;i<A.length;i++){if(A[i]<B[i])return-1;if(A[i]>B[i])return 1}return 0});return a}
 function renderWh(){let a=wh();E.wh.innerHTML="";if(!a.length){E.wh.textContent="倉庫は空です。";return}a.forEach(it=>{let b=document.createElement("button");b.className="row"+(selWh===it.id?" sel":"");b.innerHTML=`${esc(it.ic)} ${esc((it.n||dn(it,false))+plusText(it)+(it.qty?`×${it.qty}`:"")+(it.ch!=null?`［${it.ch}］`:""))}<span class="desc">${esc((it.d||"")+effectText(it))}</span>`;b.onclick=()=>{selWh=it.id;renderWh()};E.wh.appendChild(b)})}
