@@ -1,4 +1,4 @@
-const APP_VERSION="0.4.3";
+const APP_VERSION="0.4.4";
 const GAS_URL="https://script.google.com/macros/s/AKfycbzUJb7b8I7w5HG7h7OeR-43vawtbcBiudTLO2qzOhOrt4O9IYxIRnhObWn9-n3Io5dUoA/exec";
 const SIZE=15,WALL=0,FLOOR=1;
 const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0],"up-left":[-1,-1],"up-right":[1,-1],"down-left":[-1,1],"down-right":[1,1]};
@@ -17,12 +17,15 @@ const ITEMS={
 const DROP={beginner:["h1","bread","ar1","sw1","sh1","si","st","wf","ph","rp"],herb:["h1","h2","hp","po","bread","ar1","ar2","sw2","sh2","si","st","ww","sa","sd","wf","ws","wb","ph","pi","ps","pc","rf","rg"],deep:Object.keys(ITEMS)};
 const EN=[{id:"sl",tribe:"slime",n:"分裂スライム",ic:"ぷ",hp:10,a:3,ex:6,ab:"split"},{id:"bt",tribe:"beast",n:"はやてコウモリ",ic:"こ",hp:9,a:4,ex:8,ab:"fast"},{id:"mg",tribe:"mage",n:"火吹きまどうし",ic:"魔",hp:12,a:5,ex:13,ab:"range"},{id:"th",tribe:"human",n:"ぬすっと小僧",ic:"盗",hp:11,a:4,ex:12,ab:"steal"},{id:"gh",tribe:"ghost",n:"かべぬけゴースト",ic:"霊",hp:16,a:6,ex:16,ab:"ghost"},{id:"po",tribe:"insect",n:"どくサソリ",ic:"毒",hp:15,a:7,ex:18,ab:"poison"}];
 const CAT_ORDER={weapon:1,shield:2,ring:3,arrow:4,herb:5,food:6,wand:7,scroll:8,pot:9};
-const $=id=>document.getElementById(id),E={name:$("playerName"),ds:$("dungeonSelect"),b:$("board"),log:$("log"),inv:$("inventory"),wh:$("warehouse"),shop:$("shop"),bag:$("bagInfo"),rank:$("ranking"),rn:$("rankingNote"),res:$("result"),rt:$("resultTitle"),rx:$("resultText"),sub:$("btnSubmit"),sf:$("stFloor"),sl:$("stLevel"),hp:$("stHp"),fo:$("stFood"),go:$("stGold"),sa:$("stAtk"),sd:$("stDef"),ew:$("eqWeapon"),es:$("eqShield"),err:$("eqRingR"),erl:$("eqRingL"),ear:$("eqArrow")};
+const $=id=>document.getElementById(id),E={name:$("playerName"),ds:$("dungeonSelect"),b:$("board"),log:$("log"),inv:$("inventory"),wh:$("warehouse"),shop:$("shop"),bag:$("bagInfo"),rank:$("ranking"),rn:$("rankingNote"),res:$("result"),rt:$("resultTitle"),rx:$("resultText"),sub:$("btnSubmit"),sf:$("stFloor"),sl:$("stLevel"),hp:$("stHp"),fo:$("stFood"),go:$("stGold"),sa:$("stAtk"),sd:$("stDef"),ew:$("eqWeapon"),es:$("eqShield"),err:$("eqRingR"),erl:$("eqRingL"),ear:$("eqArrow"),bg:$("baseGold")};
 let S=null,last=null,sel="",selWh="",held=new Set(),faceMode=false;
 const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a,C=a=>a[R(0,a.length-1)],uid=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),cl=(v,a,b)=>Math.max(a,Math.min(b,v)),esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-function init(){E.name.value=localStorage.md_player_name||"";E.ds.value=localStorage.md_dungeon_id||"beginner";bind();empty();renderWh();loadRank();sw()}
+function baseGold(){return Number(localStorage.md_base_gold_v044||0)}
+function setBaseGold(v){localStorage.md_base_gold_v044=String(Math.max(0,Math.floor(Number(v)||0)));updateBaseGoldDisplay()}
+function updateBaseGoldDisplay(){try{if(E&&E.bg)E.bg.textContent=`拠点G：${baseGold()}`;if(E&&E.go&&!S)E.go.textContent=String(baseGold())}catch(e){}}
+function init(){E.name.value=localStorage.md_player_name||"";E.ds.value=localStorage.md_dungeon_id||"beginner";bind();empty();renderWh();updateBaseGoldDisplay();loadRank();sw()}
 function bind(){
- $("btnNewGame").onclick=start;$("btnRanking").onclick=loadRank;$("btnUpdate").onclick=hardUpdate;$("btnWait").onclick=()=>turn(0,0);$("btnAttack").onclick=attackButton;$("btnShoot").onclick=shootSelected;$("btnLook").onclick=lookFloor;$("btnPickup").onclick=pickFloor;$("btnFaceMode").onclick=toggleFaceMode;$("btnUse").onclick=use;$("btnEquip").onclick=()=>equip();$("btnDrop").onclick=dropSelected;$("btnSwapFloor").onclick=swapFloor;$("btnSortInv").onclick=sortInvButton;$("btnReturn").onclick=ret;$("btnGiveUp").onclick=giveup;$("btnTakeWh").onclick=takeWh;$("btnSortWh").onclick=sortWh;E.sub.onclick=submit;$("btnClose").onclick=()=>E.res.close();E.inv.onclick=inventoryClick;E.shop.onclick=shopClick;E.ds.onchange=()=>{localStorage.md_dungeon_id=E.ds.value;loadRank()};
+ $("btnNewGame").onclick=start;$("btnRanking").onclick=loadRank;$("btnUpdate").onclick=hardUpdate;$("btnWait").onclick=()=>turn(0,0);$("btnAttack").onclick=attackButton;$("btnShoot").onclick=shootSelected;$("btnLook").onclick=lookFloor;$("btnPickup").onclick=pickFloor;$("btnFaceMode").onclick=toggleFaceMode;$("btnUse").onclick=use;$("btnEquip").onclick=()=>equip();$("btnDrop").onclick=dropSelected;$("btnSwapFloor").onclick=swapFloor;$("btnSortInv").onclick=sortInvButton;$("btnReturn").onclick=ret;$("btnGiveUp").onclick=giveup;$("btnTakeWh").onclick=takeWh;$("btnSellWh").onclick=sellWh;$("btnSortWh").onclick=sortWh;E.sub.onclick=submit;$("btnClose").onclick=()=>E.res.close();E.inv.onclick=inventoryClick;E.shop.onclick=shopClick;E.ds.onchange=()=>{localStorage.md_dungeon_id=E.ds.value;loadRank()};
  document.querySelectorAll("[data-dir]").forEach(x=>x.onclick=()=>{let [dx,dy]=DIRS[x.dataset.dir];if(faceMode){setFace(dx,dy);faceMode=false;updateFaceButton();return}S&&(S.face={dx,dy});turn(dx,dy)});
  window.addEventListener("keydown",ev=>handleKey(ev));window.addEventListener("keyup",ev=>{held.delete(normKey(ev.key))});
 }
@@ -81,7 +84,7 @@ function bagMax(){return 20}
 function progressKey(){return"md_player_progress_v031"}
 function loadProgress(du){if(du.resetLevel)return{lv:1,ex:0,mhp:36,atk:6,def:1};let p=JSON.parse(localStorage.getItem(progressKey())||"{}");return{lv:p.lv||1,ex:p.ex||0,mhp:p.mhp||36,atk:p.atk||6,def:p.def||1}}
 function saveProgress(){if(!S||S.du.resetLevel)return;let cur=loadProgress({});let p={lv:Math.max(cur.lv||1,S.p.lv||1),ex:S.p.ex||0,mhp:Math.max(cur.mhp||36,S.p.mhp||36),atk:Math.max(cur.atk||6,S.p.atk||6),def:Math.max(cur.def||1,S.p.def||1)};localStorage.setItem(progressKey(),JSON.stringify(p))}
-function start(){let name=(E.name.value||"名無し").replace(/[<>]/g,"").trim()||"名無し",du=DUN[E.ds.value]||DUN.beginner;localStorage.md_player_name=name;localStorage.md_dungeon_id=du.id;let carry=JSON.parse(localStorage.md_pending_items_v030||"[]").slice(0,8);localStorage.removeItem("md_pending_items_v030");let prog=loadProgress(du);S={name,du,f:1,t:0,map:[],items:[],en:[],shop:null,st:{x:13,y:13},def:0,end:false,log:[],known:initialKnown(du),canReturn:false,fx:null,face:{dx:0,dy:1},p:{x:1,y:1,hp:prog.mhp,mhp:prog.mhp,lv:prog.lv,ex:prog.ex||0,atk:prog.atk,def:prog.def,food:100,g:du.startG,poison:false,eq:{weapon:null,shield:null,ringR:null,ringL:null,arrow:null},inv:[item("h1",true,false),item("bread",true,false),...carry]}};sel="";floor(true);sortInv();log(`${du.name}に挑戦します。${du.resetLevel?"このダンジョンはレベル1から開始します。":"レベルは前回までの成長を引き継ぎます。"}`);log("装備中アイテムは緑色で :E が付き、整頓時は一番上に並びます。");faceMode=false;updateFaceButton();render();renderWh();loadRank()}
+function start(){let name=(E.name.value||"名無し").replace(/[<>]/g,"").trim()||"名無し",du=DUN[E.ds.value]||DUN.beginner;localStorage.md_player_name=name;localStorage.md_dungeon_id=du.id;let carry=JSON.parse(localStorage.md_pending_items_v030||"[]").slice(0,8);localStorage.removeItem("md_pending_items_v030");let carriedGold=baseGold();setBaseGold(0);let prog=loadProgress(du);S={name,du,f:1,t:0,map:[],items:[],en:[],shop:null,st:{x:13,y:13},def:0,end:false,log:[],known:initialKnown(du),canReturn:false,fx:null,face:{dx:0,dy:1},p:{x:1,y:1,hp:prog.mhp,mhp:prog.mhp,lv:prog.lv,ex:prog.ex||0,atk:prog.atk,def:prog.def,food:100,g:du.startG+carriedGold,poison:false,eq:{weapon:null,shield:null,ringR:null,ringL:null,arrow:null},inv:[item("h1",true,false),item("bread",true,false),...carry]}};sel="";floor(true);sortInv();log(`${du.name}に挑戦します。${du.resetLevel?"このダンジョンはレベル1から開始します。":"レベルは前回までの成長を引き継ぎます。"}`);log("装備中アイテムは緑色で :E が付き、整頓時は一番上に並びます。");faceMode=false;updateFaceButton();render();renderWh();loadRank()}
 function floor(first=false){S.map=genMap();S.en=[];S.items=[];S.shop=null;let fs=floors();let p=first?{x:1,y:1}:C(fs);S.p.x=p.x;S.p.y=p.y;S.st=far(p,fs);for(let i=0;i<cl(3+Math.floor(S.f/2),3,11);i++)spawn();for(let i=0;i<cl(4+Math.floor(S.f/4),4,8);i++){let q=emptyTile();S.items.push({...randItem(),x:q.x,y:q.y})}if(S.f>=2&&(S.f%3===0||Math.random()<.18))mkShop();if(!first){S.p.hp=cl(S.p.hp+8,1,S.p.mhp);S.p.food=cl(S.p.food+5,0,100)}}
 function genMap(){let m=Array.from({length:SIZE},()=>Array.from({length:SIZE},()=>FLOOR));for(let y=0;y<SIZE;y++){m[y][0]=m[y][SIZE-1]=WALL}for(let x=0;x<SIZE;x++){m[0][x]=m[SIZE-1][x]=WALL}for(let i=0;i<36;i++){let x=R(1,13),y=R(1,13);if(!(x<=2&&y<=2)&&Math.random()<.36)m[y][x]=WALL}m[1][1]=FLOOR;return m}
 function floors(){let a=[];for(let y=1;y<14;y++)for(let x=1;x<14;x++)if(S.map[y][x]===FLOOR)a.push({x,y});return a}
@@ -188,7 +191,7 @@ function pickupAt(x,y,silentFull=false){if(!S||S.end)return false;normalizeItems
 function pickup(silentFull=false){return pickupAt(S?.p?.x,S?.p?.y,silentFull)}
 function pickFloor(){if(!S||S.end)return;let ok=pickupAt(S.p.x,S.p.y,false);if(!ok){log("足元に拾えるアイテムはありません。")}render()}
 function nearestGroundItem(range=1){return floorItem()}
-function addInv(it){it=normalizeOneItem(it);if(it.cat==="arrow"){let same=S.p.inv.find(x=>x&&x.k===it.k&&x.cat==="arrow"&&!isEq(x));if(same){same.qty=(same.qty||0)+(it.qty||1);normalizeInventory();return same}}S.p.inv.push(it);normalizeInventory();return it}
+function addInv(it){it=normalizeOneItem(it);if(it.cat==="arrow"){let same=S.p.inv.find(x=>x&&x.k===it.k&&x.cat==="arrow");if(same){same.qty=(same.qty||0)+(it.qty||1);normalizeInventory();return same}}S.p.inv.push(it);normalizeInventory();return it}
 function floorItem(){return itemAtPlayer()}
 function dropSelected(idv=sel){if(!S||S.end)return;let it=findItem(idv);if(!it){log("置くアイテムを選択してください。");render();return}if(isEq(it)){log("装備中のアイテムは外してから置いてください。");render();return}if(floorItem()){log("足元にアイテムがあります。床と交換を使ってください。");render();return}removeIt(it.id);it.x=S.p.x;it.y=S.p.y;S.items.push(it);log(`${dn(it,false)}を床に置きました。`);render()}
 function swapFloor(idv=sel){if(!S||S.end)return;let ground=floorItem(),it=findItem(idv);if(!ground){log("足元に交換するアイテムがありません。");render();return}if(!it){log("交換する手持ちアイテムを選択してください。");render();return}if(isEq(it)){log("装備中のアイテムは交換できません。外してから交換してください。");render();return}S.items=S.items.filter(x=>x.id!==ground.id);removeIt(it.id);it.x=S.p.x;it.y=S.p.y;S.items.push(it);delete ground.x;delete ground.y;addInv(ground);sel=ground.id;log(`${dn(it,false)}と${dn(ground,false)}を交換しました。`);render()}
@@ -222,12 +225,13 @@ function removeIt(i){S.p.inv=S.p.inv.filter(x=>x.id!==i);for(const k of Object.k
 function sortKey(it){let eq=isEq(it)?0:1,slot=eqSlotOf(it),slotOrd={weapon:1,shield:2,ringR:3,ringL:4,arrow:5}[slot]||9;return [eq,eq?0:slotOrd,CAT_ORDER[it.cat]||99,it.k,it.plus?-(it.plus):0,it.n]}
 function sortInv(){S.p.inv.sort((a,b)=>{let A=sortKey(a),B=sortKey(b);for(let i=0;i<A.length;i++){if(A[i]<B[i])return-1;if(A[i]>B[i])return 1}return 0})}
 function sortInvButton(){if(!S)return;sortInv();log("手持ちを整頓しました。装備中→武器→防具→指輪→矢→回復→食料→杖→巻物→壺の順に並べました。");render()}
+function salePrice(it){it=normalizeOneItem(it);return Math.max(1,Math.floor((Number(it.p)||10)*0.5)+(Number(it.plus)||0)*30)}
 function buy(i){if(!S||!S.shop)return;let it=S.shop.goods[i];if(!it)return;if(S.p.g<it.p){log("ゴールドが足りません。");render();return}if(S.p.inv.length>=bagMax()){log("持ち物がいっぱいです。不要アイテムを売るか床に置いてください。");render();return}S.p.g-=it.p;S.shop.goods.splice(i,1);addInv(it);sel=it.id;sortInv();log(`${dn(it)}を購入しました。`);render()}
 function inShop(){return S&&S.shop&&S.p.x===S.shop.x&&S.p.y===S.shop.y}
-function sellItem(idv){if(!S||S.end)return;if(!inShop()){log("売却は店の上で行えます。");render();return}let it=findItem(idv);if(!it){log("売るアイテムを選択してください。");render();return}if(isEq(it)){log("装備中のアイテムは外してから売ってください。");render();return}removeIt(it.id);let price=Math.max(1,Math.floor((it.p||10)*0.5)+(it.plus||0)*30);S.p.g+=price;log(`${dn(it,false)}を${price}Gで売りました。`);render()}
+function sellItem(idv){if(!S||S.end)return;if(!inShop()){log("売却は店の上で行えます。");render();return}let it=findItem(idv);if(!it){log("売るアイテムを選択してください。");render();return}if(isEq(it)){log("装備中のアイテムは外してから売ってください。");render();return}removeIt(it.id);let price=salePrice(it);S.p.g+=price;log(`${dn(it,false)}を${price}Gで売りました。`);render()}
 function ret(){if(!S||S.end)return;if(!S.canReturn){log("今は帰還できません。5階ごとの帰還ポイント、帰還の巻物、クリア時のみ帰還できます。");render();return}finish("帰還ポイントから無事に帰りました。",false,true)}
 function giveup(){if(S&&!S.end)finish("冒険をあきらめました。手持ちと装備は全ロストしました。",false,false)}
-function finish(msg,clear,keep){if(!S||S.end)return;let death=!clear&&!keep&&S.p.hp<=0;S.end=true;last={name:S.name,score:score(clear),floor:S.f,level:S.p.lv,gold:S.p.g,defeated:S.def,turn:S.t,cleared:clear,dungeonId:S.du.id,dungeonName:S.du.name,version:APP_VERSION,createdAt:new Date().toISOString()};saveLocal(last);saveProgress();let resultInfo={name:S.name,duName:S.du.name,f:S.f,lv:S.p.lv,def:S.def,g:S.p.g,msg,clear,keep,death};if(keep)depositAll();else{S.p.inv=[];S.p.eq={weapon:null,shield:null,ringR:null,ringL:null,arrow:null};sel=""}render();renderWh();E.rt.textContent=clear?"ダンジョンクリア！":death?"冒険失敗":"冒険終了";E.rx.innerHTML=`${death?"死因":"理由"}：${esc(msg)}<br>ダンジョン：${esc(resultInfo.duName)}<br>スコア：<b>${last.score}</b><br>到達階：${resultInfo.f}階 / Lv：${resultInfo.lv} / 討伐：${resultInfo.def}体 / G：${resultInfo.g}`;E.sub.disabled=false;E.res.showModal();loadRank();setTimeout(()=>{S=null;faceMode=false;updateFaceButton();empty();renderWh()},0)}
+function finish(msg,clear,keep){if(!S||S.end)return;let death=!clear&&!keep&&S.p.hp<=0;S.end=true;last={name:S.name,score:score(clear),floor:S.f,level:S.p.lv,gold:S.p.g,defeated:S.def,turn:S.t,cleared:clear,dungeonId:S.du.id,dungeonName:S.du.name,version:APP_VERSION,createdAt:new Date().toISOString()};saveLocal(last);saveProgress();let resultInfo={name:S.name,duName:S.du.name,f:S.f,lv:S.p.lv,def:S.def,g:S.p.g,msg,clear,keep,death};if(keep){setBaseGold(S.p.g);depositAll()}else{setBaseGold(0);S.p.inv=[];S.p.eq={weapon:null,shield:null,ringR:null,ringL:null,arrow:null};sel=""}render();renderWh();E.rt.textContent=clear?"ダンジョンクリア！":death?"冒険失敗":"冒険終了";E.rx.innerHTML=`${death?"死因":"理由"}：${esc(msg)}<br>ダンジョン：${esc(resultInfo.duName)}<br>スコア：<b>${last.score}</b><br>到達階：${resultInfo.f}階 / Lv：${resultInfo.lv} / 討伐：${resultInfo.def}体 / G：${resultInfo.g}`;E.sub.disabled=false;E.res.showModal();loadRank();setTimeout(()=>{S=null;faceMode=false;updateFaceButton();empty();renderWh();updateBaseGoldDisplay()},0)}
 function score(clear=false){return Math.floor(S.f*140*S.du.dif+S.p.lv*90+S.p.g+S.def*28+Math.max(0,S.p.hp)*3+S.p.inv.length*15+(clear?S.du.max*180:0))}
 function empty(){E.b.innerHTML="";for(let i=0;i<SIZE*SIZE;i++){let d=document.createElement("div");d.className="cell wall";E.b.appendChild(d)}update();renderInv();renderShop()}
 function renderBoard(){
@@ -240,7 +244,7 @@ function renderBoard(){
    d.className="cell "+(S.map[y][x]===WALL?"wall":"floor");
    if(Number(S.p.x)===x&&Number(S.p.y)===y){
      d.className="cell player "+faceClass();
-     d.textContent="主";
+     d.innerHTML='<span class="heroSprite" aria-label="主人公"></span>';
    }else if(em.has(k)){
      let e=em.get(k);
      d.className="cell enemy";
@@ -289,7 +293,7 @@ function update(){
  setTxt(E.sl,S?S.p.lv:"-");
  setTxt(E.hp,S?`${S.p.hp}/${S.p.mhp}`:"-");
  setTxt(E.fo,S?S.p.food:"-");
- setTxt(E.go,S?S.p.g:"-");
+ setTxt(E.go,S?S.p.g:baseGold());
  setTxt(E.sa,S?atk():"-");
  setTxt(E.sd,S?def():"-");
  setTxt(E.ew,S?equipName("weapon"):"なし");
@@ -330,7 +334,7 @@ function renderInv(){
        if(inShop())actions+=`<button data-act="sell" data-id="${id}" class="safeMini">売る</button>`;
      }
      rows.push(`<div class="row${sel===it.id?" sel":""}${eq?" equipped":""}" data-id="${id}">
-       <button class="itemLine" data-act="select" data-id="${id}">${esc(it.ic)} ${esc(safeDn(it))}${eq?" <span class='eqMark'>装備中</span>":""}<span class="desc">${esc(safeDd(it))}</span></button>
+       <button class="itemLine" data-act="select" data-id="${id}">${esc(it.ic)} ${esc(safeDn(it))}${eq?" <span class='eqMark'>装備中</span>":""}<span class="desc">${esc(safeDd(it))}${inShop()&&!eq?` / 売価:${salePrice(it)}G`:""}</span></button>
        <div class="rowActions">${actions}</div>
      </div>`);
    }
@@ -382,9 +386,10 @@ function log(x){if(!S)return;S.log.push(x);try{if(E&&E.log)renderLog()}catch(e){
 function refreshPanels(){try{update()}catch(e){console.error(e)}try{renderInv()}catch(e){console.error(e);simpleInvFallback()}try{renderShop()}catch(e){console.error(e)}try{renderLog()}catch(e){console.error(e)}}
 function logRender(x){log(x);renderLog()}function inside(x,y){return x>=0&&y>=0&&x<SIZE&&y<SIZE}
 function wh(){return JSON.parse(localStorage.md_warehouse_v030||"[]")}function writeWh(a){localStorage.md_warehouse_v030=JSON.stringify(a.slice(0,100))}function sortItems(a){a.sort((x,y)=>{let A=[CAT_ORDER[x.cat]||99,x.k,-(x.plus||0),x.n],B=[CAT_ORDER[y.cat]||99,y.k,-(y.plus||0),y.n];for(let i=0;i<A.length;i++){if(A[i]<B[i])return-1;if(A[i]>B[i])return 1}return 0});return a}
-function renderWh(){let a=wh();E.wh.innerHTML="";if(!a.length){E.wh.textContent="倉庫は空です。";return}a.forEach(it=>{let b=document.createElement("button");b.className="row"+(selWh===it.id?" sel":"");b.innerHTML=`${esc(it.ic)} ${esc((it.n||dn(it,false))+plusText(it)+(it.qty?`×${it.qty}`:"")+(it.ch!=null?`［${it.ch}］`:""))}<span class="desc">${esc((it.d||"")+effectText(it))}</span>`;b.onclick=()=>{selWh=it.id;renderWh()};E.wh.appendChild(b)})}
+function renderWh(){let a=wh().filter(Boolean).map(normalizeOneItem);writeWh(sortItems(a));E.wh.innerHTML="";if(!a.length){E.wh.textContent="倉庫は空です。";return}a.forEach(it=>{let b=document.createElement("button");b.className="row"+(selWh===it.id?" sel":"");b.innerHTML=`${esc(it.ic)} ${esc(safeDn(it,false))}<span class="desc">${esc(safeDd(it)+effectText(it))} / 売価:${salePrice(it)}G</span>`;b.onclick=()=>{selWh=it.id;renderWh()};E.wh.appendChild(b)})}
 function takeWh(){if(S&&!S.end){log("冒険中は倉庫から持ち出せません。");render();return}let a=wh(),i=a.findIndex(x=>x.id===selWh);if(i<0)return;let p=JSON.parse(localStorage.md_pending_items_v030||"[]");if(p.length>=8){alert("持ち出しは最大8個です。");return}p.push(a.splice(i,1)[0]);writeWh(a);localStorage.md_pending_items_v030=JSON.stringify(p);selWh="";renderWh();alert("次回冒険の持ち物に入れました。")}
-function sortWh(){let a=sortItems(wh());writeWh(a);renderWh()}
+function sellWh(){if(S&&!S.end){log("冒険中は倉庫から売却できません。");return}let a=wh().filter(Boolean).map(normalizeOneItem),i=a.findIndex(x=>x.id===selWh);if(i<0){alert("売る倉庫アイテムを選択してください。");return}let it=a[i],price=salePrice(it);a.splice(i,1);writeWh(sortItems(a));setBaseGold(baseGold()+price);selWh="";renderWh();alert(`${safeDn(it,false)}を${price}Gで売りました。`)}
+function sortWh(){let a=sortItems(wh().filter(Boolean).map(normalizeOneItem));writeWh(a);renderWh()}
 function depositAll(){let a=wh();S.p.inv.forEach(it=>{it.known=true;a.push(it)});S.p.inv=[];S.p.eq={weapon:null,shield:null,ringR:null,ringL:null,arrow:null};writeWh(sortItems(a))}
 function rkey(){return`md_rank_v030_${E.ds.value||"beginner"}`}function saveLocal(r){let a=JSON.parse(localStorage.getItem(`md_rank_v030_${r.dungeonId}`)||"[]");a.push(r);a.sort((x,y)=>y.score-x.score);localStorage.setItem(`md_rank_v030_${r.dungeonId}`,JSON.stringify(a.slice(0,20)))}function localRank(){return JSON.parse(localStorage.getItem(rkey())||"[]").sort((x,y)=>y.score-x.score).slice(0,10)}
 async function submit(){if(!last)return;E.sub.disabled=true;try{let p=new URLSearchParams();Object.entries(last).forEach(([k,v])=>p.append(k,String(v)));await fetch(GAS_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:p.toString()});E.rn.textContent="共有ランキングへ送信しました。";setTimeout(loadRank,1500)}catch(e){E.rn.textContent="共有ランキング送信に失敗。ローカルランキングを表示します。";loadRank()}}

@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#263238">
   <title>Simple Mystery Dungeon</title>
   <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./style.css?v=0.4.3">
+  <link rel="stylesheet" href="./style.css?v=0.4.4">
 </head>
 <body>
 <div id="app">
   <header class="topbar">
-    <div><h1>Simple Mystery Dungeon</h1><div class="ver">PWA ROGUELIKE v0.4.3</div></div>
+    <div><h1>Simple Mystery Dungeon</h1><div class="ver">PWA ROGUELIKE v0.4.4</div></div>
     <button id="btnUpdate" class="small">最新版に更新</button>
   </header>
 
@@ -24,6 +24,7 @@
     </select></label>
     <button id="btnNewGame" class="main">冒険を開始</button>
     <button id="btnRanking" class="sub">ランキング更新</button>
+    <span id="baseGold" class="baseGold">拠点G：0</span>
     <p>方向キー・WASDで移動。Q/E/Z/Cで斜め移動。Ctrl＋方向キー、Ctrl＋Q/E/Z/C、または「向き変更」ボタン後の方向入力でターン消費なしに向きだけ変更します。攻撃ボタンで向いている方向を攻撃、矢ボタンで装備中の矢を発射します。アイテムは移動時に自動取得し、足元のアイテムは「拾う」ボタンでも取得できます。</p>
   </section>
 
@@ -56,16 +57,16 @@
         <button id="btnEquip" class="sub">選択を装備</button>
         <button id="btnDrop" class="sub">床に置く</button>
         <button id="btnSwapFloor" class="sub">床と交換</button>
-        <button id="btnSortInv" class="sub">手持ち整頓</button>
+        
         <button id="btnReturn" class="safe">帰還</button>
         <button id="btnGiveUp" class="danger">あきらめる</button>
       </div>
     </main>
 
     <aside>
-      <section class="panel"><h2>持ち物</h2><div id="bagInfo" class="note">-</div><div id="inventory" class="list">-</div></section>
+      <section class="panel"><h2 class="panelTitle">持ち物 <button id="btnSortInv" class="mini inlineMini">手持ち整理</button></h2><div id="bagInfo" class="note">-</div><div id="inventory" class="list">-</div></section>
       <section class="panel"><h2>店</h2><div id="shop" class="list muted">店に乗ると商品が表示されます。</div></section>
-      <section class="panel"><h2>倉庫</h2><div class="actions"><button id="btnTakeWh" class="mini">選択を持ち出す</button><button id="btnSortWh" class="mini">倉庫整頓</button></div><div id="warehouse" class="list">-</div><div class="note">倉庫の出し入れは冒険前のみ。帰還ポイント・帰還の巻物・クリア時に持ち物と装備を保存します。あきらめる/死亡時は全ロストします。</div></section>
+      <section class="panel"><h2>倉庫</h2><div class="actions"><button id="btnTakeWh" class="mini">選択を持ち出す</button><button id="btnSellWh" class="mini safeMini">選択を売る</button><button id="btnSortWh" class="mini">倉庫整頓</button></div><div id="warehouse" class="list">-</div><div class="note">倉庫の出し入れは冒険前のみ。帰還ポイント・帰還の巻物・クリア時に持ち物と装備を保存します。あきらめる/死亡時は全ロストします。</div></section>
       <section class="panel"><h2>ログ</h2><div id="log" class="log"></div></section>
       <section class="panel"><h2>ダンジョン別ランキング</h2><ol id="ranking"></ol><div id="rankingNote" class="note"></div></section>
     </aside>
@@ -73,6 +74,6 @@
 
   <dialog id="result"><h2 id="resultTitle">結果</h2><p id="resultText"></p><div class="actions"><button id="btnSubmit" class="main">ランキング登録</button><button id="btnClose" class="sub">閉じる</button></div></dialog>
 </div>
-<script src="./app.js?v=0.4.3"></script>
+<script src="./app.js?v=0.4.4"></script>
 </body>
 </html>

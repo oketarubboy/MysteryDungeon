@@ -36,3 +36,23 @@
 .emptyItem{color:var(--muted);padding:8px;}
 
 .status{grid-template-columns:repeat(auto-fit,minmax(82px,1fr));}
+
+.panelTitle{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.inlineMini{font-size:12px;padding:5px 8px;margin-left:8px}
+.baseGold{display:inline-flex;align-items:center;min-height:34px;padding:6px 10px;border-radius:10px;background:#10171c;border:1px solid rgba(255,255,255,.12);color:var(--accent);font-weight:800}
+.heroSprite{
+  width:20px;height:20px;display:block;image-rendering:pixelated;position:relative;
+  background:
+    linear-gradient(#263238,#263238) 6px 0/8px 4px no-repeat,
+    linear-gradient(#ffd166,#ffd166) 4px 4px/12px 6px no-repeat,
+    linear-gradient(#246a73,#246a73) 2px 10px/16px 7px no-repeat,
+    linear-gradient(#111,#111) 4px 17px/4px 3px no-repeat,
+    linear-gradient(#111,#111) 12px 17px/4px 3px no-repeat;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.75));
+  animation:heroStep .55s steps(2,end) infinite;
+}
+.heroSprite::before,.heroSprite::after{content:"";position:absolute;background:#fff;width:3px;height:3px;top:6px}
+.heroSprite::before{left:7px}.heroSprite::after{right:7px}
+@keyframes heroStep{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.enemy{animation:enemyBob .75s steps(2,end) infinite}
+@keyframes enemyBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
