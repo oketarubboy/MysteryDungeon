@@ -1,4 +1,4 @@
-const APP_VERSION="0.4.2";
+const APP_VERSION="0.4.3";
 const GAS_URL="https://script.google.com/macros/s/AKfycbzUJb7b8I7w5HG7h7OeR-43vawtbcBiudTLO2qzOhOrt4O9IYxIRnhObWn9-n3Io5dUoA/exec";
 const SIZE=15,WALL=0,FLOOR=1;
 const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0],"up-left":[-1,-1],"up-right":[1,-1],"down-left":[-1,1],"down-right":[1,1]};
@@ -73,8 +73,8 @@ function normalizeInventory(){
    if(S.p.eq[k]&&!S.p.inv.some(it=>it.id===S.p.eq[k]))S.p.eq[k]=null;
  }
 }
-function safeDn(it,mark=true){try{return dn(normalizeOneItem(it),mark)}catch(e){return String(it?.n||it?.name||it?.k||"不明アイテム")}}
-function safeDd(it){try{return dd(normalizeOneItem(it))}catch(e){return String(it?.d||it?.desc||"")}}
+function safeDn(it,mark=true){if(!it)return"なし";try{return dn(normalizeOneItem(it),mark)}catch(e){return String(it?.n||it?.name||it?.k||"不明アイテム")}}
+function safeDd(it){if(!it)return"";try{return dd(normalizeOneItem(it))}catch(e){return String(it?.d||it?.desc||"")}}
 
 function know(k){S.known[k]=true;S.p.inv.forEach(x=>{if(x.k===k)x.known=true})}
 function bagMax(){return 20}
@@ -280,6 +280,8 @@ function render(){
  try{renderLog()}catch(e){console.error(e)}
 }
 function setTxt(el,val){if(el)el.textContent=String(val)}
+function setTxt(el,val){if(el)el.textContent=String(val)}
+function equipName(slot){let it=equipItem(slot);return it?safeDn(it):"なし"}
 function update(){
  if(S)normalizeInventory();
  let d=S?.du||DUN[E.ds.value]||DUN.beginner;
@@ -290,11 +292,11 @@ function update(){
  setTxt(E.go,S?S.p.g:"-");
  setTxt(E.sa,S?atk():"-");
  setTxt(E.sd,S?def():"-");
- setTxt(E.ew,S?safeDn(equipItem("weapon")):"なし");
- setTxt(E.es,S?safeDn(equipItem("shield")):"なし");
- setTxt(E.err,S?safeDn(equipItem("ringR")):"なし");
- setTxt(E.erl,S?safeDn(equipItem("ringL")):"なし");
- setTxt(E.ear,S?safeDn(equipItem("arrow")):"なし");
+ setTxt(E.ew,S?equipName("weapon"):"なし");
+ setTxt(E.es,S?equipName("shield"):"なし");
+ setTxt(E.err,S?equipName("ringR"):"なし");
+ setTxt(E.erl,S?equipName("ringL"):"なし");
+ setTxt(E.ear,S?equipName("arrow"):"なし");
 }
 function renderInv(){
  try{

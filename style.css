@@ -34,3 +34,5 @@
 .emptyItem{color:var(--muted);padding:8px;}
 
 .emptyItem{color:var(--muted);padding:8px;}
+
+.status{grid-template-columns:repeat(auto-fit,minmax(82px,1fr));}
