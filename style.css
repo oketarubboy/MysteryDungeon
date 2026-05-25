@@ -56,4 +56,52 @@
 @keyframes heroStep{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 .enemy{animation:enemyBob .75s steps(2,end) infinite}
 @keyframes enemyBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
-\n\n/* v0.4.5 hero sprite sheet */\n.cell.player{padding:0;overflow:hidden;background:#246a73;display:block}\n.heroSprite{\n  width:100%;height:100%;display:block;\n  background-image:url("assets/player_idle_sheet.png");\n  background-repeat:no-repeat;\n  background-size:400% 200%;\n  image-rendering:pixelated;\n}\n.heroSprite.attack{background-image:url("assets/player_attack_sheet.png")}\n.heroSprite.face-down{background-position:0% 0%}\n.heroSprite.face-down-left{background-position:33.333% 0%}\n.heroSprite.face-left{background-position:66.666% 0%}\n.heroSprite.face-up-left{background-position:100% 0%}\n.heroSprite.face-up{background-position:0% 100%}\n.heroSprite.face-up-right{background-position:33.333% 100%}\n.heroSprite.face-right{background-position:66.666% 100%}\n.heroSprite.face-down-right{background-position:100% 100%}\n.heroSprite::before,.heroSprite::after{display:none !important;content:none !important}\n
+
+
+/* v0.4.6 hero sprite sheet */
+.cell.player{padding:0;overflow:hidden;background:#246a73;display:block}
+.heroSprite{
+  width:100%;height:100%;display:block;
+  background-image:url("assets/player_idle_sheet.png");
+  background-repeat:no-repeat;
+  background-size:400% 200%;
+  image-rendering:pixelated;
+}
+.heroSprite.attack{background-image:url("assets/player_attack_sheet.png")}
+.heroSprite.face-down{background-position:0% 0%}
+.heroSprite.face-down-left{background-position:33.333% 0%}
+.heroSprite.face-left{background-position:66.666% 0%}
+.heroSprite.face-up-left{background-position:100% 0%}
+.heroSprite.face-up{background-position:0% 100%}
+.heroSprite.face-up-right{background-position:33.333% 100%}
+.heroSprite.face-right{background-position:66.666% 100%}
+.heroSprite.face-down-right{background-position:100% 100%}
+.heroSprite::before,.heroSprite::after{display:none !important;content:none !important}
+
+
+/* v0.4.6 direct PNG hero sprites */
+.cell.player{
+  padding:0;
+  overflow:hidden;
+  background:#246a73;
+  display:grid;
+  place-items:center;
+}
+.heroSprite{display:none!important}
+.heroImg{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.75));
+}
+.heroImg.idle{
+  animation:heroImgStep .58s steps(2,end) infinite;
+}
+.heroImg.attack{
+  animation:heroImgAttack .24s steps(2,end) 1;
+}
+@keyframes heroImgStep{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes heroImgAttack{0%{transform:scale(1.05) translateY(-1px)}100%{transform:scale(1)}}
+.bankAmount{min-width:120px;width:140px}
+.bankGold{background:#182132}

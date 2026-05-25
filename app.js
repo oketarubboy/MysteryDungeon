@@ -1,4 +1,4 @@
-const APP_VERSION="0.4.5";
+const APP_VERSION="0.4.6";
 const GAS_URL="https://script.google.com/macros/s/AKfycbzUJb7b8I7w5HG7h7OeR-43vawtbcBiudTLO2qzOhOrt4O9IYxIRnhObWn9-n3Io5dUoA/exec";
 const SIZE=15,WALL=0,FLOOR=1;
 const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0],"up-left":[-1,-1],"up-right":[1,-1],"down-left":[-1,1],"down-right":[1,1]};
@@ -17,15 +17,20 @@ const ITEMS={
 const DROP={beginner:["h1","bread","ar1","sw1","sh1","si","st","wf","ph","rp"],herb:["h1","h2","hp","po","bread","ar1","ar2","sw2","sh2","si","st","ww","sa","sd","wf","ws","wb","ph","pi","ps","pc","rf","rg"],deep:Object.keys(ITEMS)};
 const EN=[{id:"sl",tribe:"slime",n:"分裂スライム",ic:"ぷ",hp:10,a:3,ex:6,ab:"split"},{id:"bt",tribe:"beast",n:"はやてコウモリ",ic:"こ",hp:9,a:4,ex:8,ab:"fast"},{id:"mg",tribe:"mage",n:"火吹きまどうし",ic:"魔",hp:12,a:5,ex:13,ab:"range"},{id:"th",tribe:"human",n:"ぬすっと小僧",ic:"盗",hp:11,a:4,ex:12,ab:"steal"},{id:"gh",tribe:"ghost",n:"かべぬけゴースト",ic:"霊",hp:16,a:6,ex:16,ab:"ghost"},{id:"po",tribe:"insect",n:"どくサソリ",ic:"毒",hp:15,a:7,ex:18,ab:"poison"}];
 const CAT_ORDER={weapon:1,shield:2,ring:3,arrow:4,herb:5,food:6,wand:7,scroll:8,pot:9};
-const $=id=>document.getElementById(id),E={name:$("playerName"),ds:$("dungeonSelect"),b:$("board"),log:$("log"),inv:$("inventory"),wh:$("warehouse"),shop:$("shop"),bag:$("bagInfo"),rank:$("ranking"),rn:$("rankingNote"),res:$("result"),rt:$("resultTitle"),rx:$("resultText"),sub:$("btnSubmit"),sf:$("stFloor"),sl:$("stLevel"),hp:$("stHp"),fo:$("stFood"),go:$("stGold"),sa:$("stAtk"),sd:$("stDef"),ew:$("eqWeapon"),es:$("eqShield"),err:$("eqRingR"),erl:$("eqRingL"),ear:$("eqArrow"),bg:$("baseGold")};
+const $=id=>document.getElementById(id),E={name:$("playerName"),ds:$("dungeonSelect"),b:$("board"),log:$("log"),inv:$("inventory"),wh:$("warehouse"),shop:$("shop"),bag:$("bagInfo"),rank:$("ranking"),rn:$("rankingNote"),res:$("result"),rt:$("resultTitle"),rx:$("resultText"),sub:$("btnSubmit"),sf:$("stFloor"),sl:$("stLevel"),hp:$("stHp"),fo:$("stFood"),go:$("stGold"),sa:$("stAtk"),sd:$("stDef"),ew:$("eqWeapon"),es:$("eqShield"),err:$("eqRingR"),erl:$("eqRingL"),ear:$("eqArrow"),bg:$("baseGold"),bank:$("bankGold"),bankAmt:$("bankAmount")};
 let S=null,last=null,sel="",selWh="",held=new Set(),faceMode=false;
 const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a,C=a=>a[R(0,a.length-1)],uid=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),cl=(v,a,b)=>Math.max(a,Math.min(b,v)),esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 function baseGold(){return Number(localStorage.md_base_gold_v044||0)}
 function setBaseGold(v){localStorage.md_base_gold_v044=String(Math.max(0,Math.floor(Number(v)||0)));updateBaseGoldDisplay()}
-function updateBaseGoldDisplay(){try{if(E&&E.bg)E.bg.textContent=`拠点G：${baseGold()}`;if(E&&E.go&&!S)E.go.textContent=String(baseGold())}catch(e){}}
+function bankGold(){return Number(localStorage.md_bank_gold_v046||0)}
+function setBankGold(v){localStorage.md_bank_gold_v046=String(Math.max(0,Math.floor(Number(v)||0)));updateBaseGoldDisplay()}
+function updateBaseGoldDisplay(){try{if(E&&E.bg)E.bg.textContent=`拠点G：${baseGold()}`;if(E&&E.bank)E.bank.textContent=`銀行G：${bankGold()}`;if(E&&E.go&&!S)E.go.textContent=String(baseGold())}catch(e){}}
+function bankAmountValue(maxDefault=0){let raw=Number(E?.bankAmt?.value||0);return Math.max(0,Math.floor(raw||maxDefault||0))}
+function depositBank(all=false){if(S&&!S.end){alert("冒険中は銀行を利用できません。");return}let amount=all?baseGold():bankAmountValue();amount=Math.min(amount,baseGold());if(amount<=0){alert("預けるゴールドがありません。");return}setBaseGold(baseGold()-amount);setBankGold(bankGold()+amount);if(E.bankAmt)E.bankAmt.value="";renderWh()}
+function withdrawBank(all=false){if(S&&!S.end){alert("冒険中は銀行を利用できません。");return}let amount=all?bankGold():bankAmountValue();amount=Math.min(amount,bankGold());if(amount<=0){alert("引き出すゴールドがありません。");return}setBankGold(bankGold()-amount);setBaseGold(baseGold()+amount);if(E.bankAmt)E.bankAmt.value="";renderWh()}
 function init(){E.name.value=localStorage.md_player_name||"";E.ds.value=localStorage.md_dungeon_id||"beginner";bind();empty();renderWh();updateBaseGoldDisplay();loadRank();sw()}
 function bind(){
- $("btnNewGame").onclick=start;$("btnRanking").onclick=loadRank;$("btnUpdate").onclick=hardUpdate;$("btnWait").onclick=()=>turn(0,0);$("btnAttack").onclick=attackButton;$("btnShoot").onclick=shootSelected;$("btnLook").onclick=lookFloor;$("btnPickup").onclick=pickFloor;$("btnFaceMode").onclick=toggleFaceMode;$("btnUse").onclick=use;$("btnEquip").onclick=()=>equip();$("btnDrop").onclick=dropSelected;$("btnSwapFloor").onclick=swapFloor;$("btnSortInv").onclick=sortInvButton;$("btnReturn").onclick=ret;$("btnGiveUp").onclick=giveup;$("btnTakeWh").onclick=takeWh;$("btnSellWh").onclick=sellWh;$("btnSortWh").onclick=sortWh;E.sub.onclick=submit;$("btnClose").onclick=()=>E.res.close();E.inv.onclick=inventoryClick;E.shop.onclick=shopClick;E.ds.onchange=()=>{localStorage.md_dungeon_id=E.ds.value;loadRank()};
+ $("btnNewGame").onclick=start;$("btnRanking").onclick=loadRank;$("btnUpdate").onclick=hardUpdate;$("btnWait").onclick=()=>turn(0,0);$("btnAttack").onclick=attackButton;$("btnShoot").onclick=shootSelected;$("btnLook").onclick=lookFloor;$("btnPickup").onclick=pickFloor;$("btnFaceMode").onclick=toggleFaceMode;$("btnUse").onclick=use;$("btnEquip").onclick=()=>equip();$("btnDrop").onclick=dropSelected;$("btnSwapFloor").onclick=swapFloor;$("btnSortInv").onclick=sortInvButton;$("btnReturn").onclick=ret;$("btnGiveUp").onclick=giveup;$("btnTakeWh").onclick=takeWh;$("btnSellWh").onclick=sellWh;$("btnSortWh").onclick=sortWh;$("btnDepositBank").onclick=()=>depositBank(false);$("btnWithdrawBank").onclick=()=>withdrawBank(false);$("btnDepositAllBank").onclick=()=>depositBank(true);$("btnWithdrawAllBank").onclick=()=>withdrawBank(true);E.sub.onclick=submit;$("btnClose").onclick=()=>E.res.close();E.inv.onclick=inventoryClick;E.shop.onclick=shopClick;E.ds.onchange=()=>{localStorage.md_dungeon_id=E.ds.value;loadRank()};
  document.querySelectorAll("[data-dir]").forEach(x=>x.onclick=()=>{let [dx,dy]=DIRS[x.dataset.dir];if(faceMode){setFace(dx,dy);faceMode=false;updateFaceButton();return}S&&(S.face={dx,dy});turn(dx,dy)});
  window.addEventListener("keydown",ev=>handleKey(ev));window.addEventListener("keyup",ev=>{held.delete(normKey(ev.key))});
 }
@@ -39,6 +44,9 @@ function dirClassFrom(dx,dy){return({"0,-1":"face-up","1,-1":"face-up-right","1,
 function heroDirClass(){if(S&&S.heroAnimUntil&&Date.now()<S.heroAnimUntil&&S.heroAnimDir)return S.heroAnimDir;return faceClass()}
 function heroActionClass(){return(S&&S.heroAnimUntil&&Date.now()<S.heroAnimUntil)?"attack":"idle"}
 function triggerHeroAttack(dx,dy){if(!S)return;dx=(dx==null?(S.face?.dx??0):dx);dy=(dy==null?(S.face?.dy??1):dy);S.heroAnimDir=dirClassFrom(dx,dy);S.heroAnimUntil=Date.now()+240;try{renderBoard()}catch(e){console.error(e)}setTimeout(()=>{if(S&&Date.now()>=Number(S.heroAnimUntil||0)){try{renderBoard()}catch(e){console.error(e)}}},260)}
+function heroFileDir(){return heroDirClass().replace("face-","")}
+function heroSpriteSrc(){return `assets/hero_${heroActionClass()}_${heroFileDir()}.png`}
+
 
 function defaultKnown(k,duId){duId=duId||S?.du?.id||E.ds?.value||"beginner";let cat=ITEMS[k]?.cat;if(duId==="beginner")return true;if(duId==="herb")return cat!=="scroll";return false}
 function initialKnown(du){let o={bread:true,sw1:true,sw2:true,sws:true,swsl:true,swtri:true,swr:true,sh1:true,sh2:true,shp:true,shf:true,sht:true,ar1:true,ar2:true};if(du.id==="beginner")Object.keys(ITEMS).forEach(k=>o[k]=true);else if(du.id==="herb")Object.keys(ITEMS).forEach(k=>{if(ITEMS[k].cat!=="scroll")o[k]=true});return o}
@@ -249,7 +257,7 @@ function renderBoard(){
    d.className="cell "+(S.map[y][x]===WALL?"wall":"floor");
    if(Number(S.p.x)===x&&Number(S.p.y)===y){
      d.className="cell player "+heroDirClass();
-     d.innerHTML=`<span class="heroSprite ${heroDirClass()} ${heroActionClass()}" aria-label="主人公"></span>`;
+     d.innerHTML=`<img class="heroImg ${heroDirClass()} ${heroActionClass()}" src="${heroSpriteSrc()}" alt="主人公">`;
    }else if(em.has(k)){
      let e=em.get(k);
      d.className="cell enemy";
