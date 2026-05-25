@@ -1,4 +1,4 @@
-const APP_VERSION="0.4.6";
+const APP_VERSION="0.4.7";
 const GAS_URL="https://script.google.com/macros/s/AKfycbzUJb7b8I7w5HG7h7OeR-43vawtbcBiudTLO2qzOhOrt4O9IYxIRnhObWn9-n3Io5dUoA/exec";
 const SIZE=15,WALL=0,FLOOR=1;
 const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0],"up-left":[-1,-1],"up-right":[1,-1],"down-left":[-1,1],"down-right":[1,1]};

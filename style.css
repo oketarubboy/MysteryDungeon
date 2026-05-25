@@ -58,7 +58,7 @@
 @keyframes enemyBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
 
 
-/* v0.4.6 hero sprite sheet */
+/* v0.4.7 hero sprite sheet */
 .cell.player{padding:0;overflow:hidden;background:#246a73;display:block}
 .heroSprite{
   width:100%;height:100%;display:block;
@@ -79,7 +79,7 @@
 .heroSprite::before,.heroSprite::after{display:none !important;content:none !important}
 
 
-/* v0.4.6 direct PNG hero sprites */
+/* v0.4.7 direct PNG hero sprites */
 .cell.player{
   padding:0;
   overflow:hidden;
