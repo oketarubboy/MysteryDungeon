@@ -1,4 +1,4 @@
-const APP_VERSION="0.4.7";
+const APP_VERSION="0.4.8";
 const GAS_URL="https://script.google.com/macros/s/AKfycbzUJb7b8I7w5HG7h7OeR-43vawtbcBiudTLO2qzOhOrt4O9IYxIRnhObWn9-n3Io5dUoA/exec";
 const SIZE=15,WALL=0,FLOOR=1;
 const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0],"up-left":[-1,-1],"up-right":[1,-1],"down-left":[-1,1],"down-right":[1,1]};
@@ -45,7 +45,12 @@ function heroDirClass(){if(S&&S.heroAnimUntil&&Date.now()<S.heroAnimUntil&&S.her
 function heroActionClass(){return(S&&S.heroAnimUntil&&Date.now()<S.heroAnimUntil)?"attack":"idle"}
 function triggerHeroAttack(dx,dy){if(!S)return;dx=(dx==null?(S.face?.dx??0):dx);dy=(dy==null?(S.face?.dy??1):dy);S.heroAnimDir=dirClassFrom(dx,dy);S.heroAnimUntil=Date.now()+240;try{renderBoard()}catch(e){console.error(e)}setTimeout(()=>{if(S&&Date.now()>=Number(S.heroAnimUntil||0)){try{renderBoard()}catch(e){console.error(e)}}},260)}
 function heroFileDir(){return heroDirClass().replace("face-","")}
-function heroSpriteSrc(){return `assets/hero_${heroActionClass()}_${heroFileDir()}.png`}
+function heroSpriteSrc(){
+ const action=heroActionClass();
+ const dir=heroFileDir();
+ if(dir==="left")return `assets/hero_${action}_left_fixed_v048.png`;
+ return `assets/hero_${action}_${dir}.png?v=0.4.8`;
+}
 
 
 function defaultKnown(k,duId){duId=duId||S?.du?.id||E.ds?.value||"beginner";let cat=ITEMS[k]?.cat;if(duId==="beginner")return true;if(duId==="herb")return cat!=="scroll";return false}
